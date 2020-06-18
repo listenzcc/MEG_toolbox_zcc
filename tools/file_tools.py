@@ -13,7 +13,7 @@ def read_raw_fif(path):
     Returns:
         The MEG object of raw 
     """
-    return mne.io.read_raw_fif(path)
+    return mne.io.read_raw_fif(path, verbose=False)
 
 
 def find_files(dir, ext='.fif'):
