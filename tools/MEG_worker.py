@@ -156,11 +156,11 @@ class MEG_Worker():
         """
         remover = Button_Effect_Remover(self.denoise_epochs,
                                         sfreq=self.raw.info['sfreq'])
-        clean_epochs, paried_lags_timelines = remover.zero_out_button(e1=e1,
+        clean_epochs, paired_lags_timelines = remover.zero_out_button(e1=e1,
                                                                       e3=e3)
 
         prompt(f'Removed button effect from target epochs')
-        return clean_epochs, paried_lags_timelines
+        return clean_epochs, paired_lags_timelines
 
     def pipeline(self, band_name,
                  ext='_ica-raw.fif',
@@ -214,7 +214,8 @@ class MEG_Worker():
 
             # Recall denoise epochs from memory
             self.denoise_epochs = mne.read_epochs(memory_denoise_path)
-            prompt(f'Denoise epochs are recalled from memory: {self.denoise_epochs}')
+            prompt(
+                f'Denoise epochs are recalled from memory: {self.denoise_epochs}')
         except:
             # Denoise epoch
             self.denoise_epochs = self._denoise(self.epochs.copy())
@@ -230,20 +231,21 @@ class MEG_Worker():
             # Recall clean epochs and lags from memory
             self.clean_epochs = mne.read_epochs(memory_clean_path[0])
             with open(memory_clean_path[1], 'rb') as f:
-                self.paried_lags_timelines = pickle.load(f)
-            prompt(f'Clean epochs are recalled from memory: {self.clean_epochs}')
+                self.paired_lags_timelines = pickle.load(f)
+            prompt(
+                f'Clean epochs are recalled from memory: {self.clean_epochs}')
         except:
             # Remove button effect
-            clean_epochs, paried_lags_timelines = self._remove_button_effect(e1='1',
+            clean_epochs, paired_lags_timelines = self._remove_button_effect(e1='1',
                                                                              e3='3')
             self.clean_epochs = clean_epochs
-            self.paried_lags_timelines = paried_lags_timelines
+            self.paired_lags_timelines = paired_lags_timelines
 
             # Remember if [use_memory]
             if self.use_memory:
                 self.clean_epochs.save(memory_clean_path[0])
                 with open(memory_clean_path[1], 'wb') as f:
-                    pickle.dump(self.paried_lags_timelines, f)
+                    pickle.dump(self.paired_lags_timelines, f)
 
 
 # %%

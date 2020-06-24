@@ -28,6 +28,7 @@ class Drawer():
         """
         self._fig = f
         self.figures.append(f)
+        print(f'New figure added, {self.figures.__len__()} in all.')
 
     def save(self, filename, override=True):
         """Draw fig objects into .pdf file

@@ -1,0 +1,380 @@
+Found 8 files that ends with _ica-raw.fif
+>> Got <Raw | block_07_ica-raw.fif, 409 x 2952000 (2460.0 s), ~1017 kB, data not loaded> from ['/home/zcc/RSVP_dataset/processed_data/MEG_S01/block_07_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S01/block_08_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S01/block_09_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S01/block_10_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S01/block_05_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S01/block_03_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S01/block_06_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S01/block_04_ica-raw.fif']
+Reading /home/zcc/RSVP_dataset/memory/MEG_S01-U07-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+3576 matching events found
+No baseline correction applied
+Not setting metadata
+0 projection items activated
+>> Raw epochs are recalled from memory: <EpochsFIF  |   3576 events (all good), -0.2 - 1.2 sec, baseline off, ~1.02 GB, data loaded,
+ '1': 448
+ '2': 2715
+ '3': 413>
+Reading /home/zcc/RSVP_dataset/memory/MEG_S01-U07-denoise-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+3576 matching events found
+Applying baseline correction (mode: mean)
+Not setting metadata
+0 projection items activated
+>> Denoise epochs are recalled from memory: <EpochsFIF  |   3576 events (all good), -0.2 - 1.2 sec, baseline [-0.2, 0], ~1.02 GB, data loaded,
+ '1': 448
+ '2': 2715
+ '3': 413>
+Reading /home/zcc/RSVP_dataset/memory/MEG_S01-U07-clean-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+448 matching events found
+Applying baseline correction (mode: mean)
+Not setting metadata
+0 projection items activated
+>> Clean epochs are recalled from memory: <EpochsFIF  |   448 events (all good), -0.2 - 1.2 sec, baseline [-0.2, 0], ~131.6 MB, data loaded,
+ '1': 448>
+Got paired X: (448, 272, 141) and y: (448,)
+Got paired X: (2715, 272, 141) and y: (2715,)
+Found 9 files that ends with _ica-raw.fif
+>> Got <Raw | block_07_ica-raw.fif, 409 x 3312000 (2760.0 s), ~1017 kB, data not loaded> from ['/home/zcc/RSVP_dataset/processed_data/MEG_S02/block_07_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S02/block_08_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S02/block_09_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S02/block_10_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S02/block_05_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S02/block_03_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S02/block_11_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S02/block_06_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S02/block_04_ica-raw.fif']
+Reading /home/zcc/RSVP_dataset/memory/MEG_S02-U07-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+3547 matching events found
+No baseline correction applied
+Not setting metadata
+0 projection items activated
+>> Raw epochs are recalled from memory: <EpochsFIF  |   3547 events (all good), -0.2 - 1.2 sec, baseline off, ~1.01 GB, data loaded,
+ '1': 468
+ '2': 2698
+ '3': 381>
+Reading /home/zcc/RSVP_dataset/memory/MEG_S02-U07-denoise-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+3547 matching events found
+Applying baseline correction (mode: mean)
+Not setting metadata
+0 projection items activated
+>> Denoise epochs are recalled from memory: <EpochsFIF  |   3547 events (all good), -0.2 - 1.2 sec, baseline [-0.2, 0], ~1.01 GB, data loaded,
+ '1': 468
+ '2': 2698
+ '3': 381>
+Reading /home/zcc/RSVP_dataset/memory/MEG_S02-U07-clean-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+468 matching events found
+Applying baseline correction (mode: mean)
+Not setting metadata
+0 projection items activated
+>> Clean epochs are recalled from memory: <EpochsFIF  |   468 events (all good), -0.2 - 1.2 sec, baseline [-0.2, 0], ~137.5 MB, data loaded,
+ '1': 468>
+Got paired X: (468, 272, 141) and y: (468,)
+Got paired X: (2698, 272, 141) and y: (2698,)
+Found 8 files that ends with _ica-raw.fif
+>> Got <Raw | block_07_ica-raw.fif, 409 x 2355552 (1963.0 s), ~1017 kB, data not loaded> from ['/home/zcc/RSVP_dataset/processed_data/MEG_S03/block_07_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S03/block_08_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S03/block_09_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S03/block_10_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S03/block_05_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S03/block_03_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S03/block_06_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S03/block_04_ica-raw.fif']
+Reading /home/zcc/RSVP_dataset/memory/MEG_S03-U07-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+3688 matching events found
+No baseline correction applied
+Not setting metadata
+0 projection items activated
+>> Raw epochs are recalled from memory: <EpochsFIF  |   3688 events (all good), -0.2 - 1.2 sec, baseline off, ~1.05 GB, data loaded,
+ '1': 448
+ '2': 2865
+ '3': 375>
+Reading /home/zcc/RSVP_dataset/memory/MEG_S03-U07-denoise-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+3688 matching events found
+Applying baseline correction (mode: mean)
+Not setting metadata
+0 projection items activated
+>> Denoise epochs are recalled from memory: <EpochsFIF  |   3688 events (all good), -0.2 - 1.2 sec, baseline [-0.2, 0], ~1.05 GB, data loaded,
+ '1': 448
+ '2': 2865
+ '3': 375>
+Reading /home/zcc/RSVP_dataset/memory/MEG_S03-U07-clean-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+448 matching events found
+Applying baseline correction (mode: mean)
+Not setting metadata
+0 projection items activated
+>> Clean epochs are recalled from memory: <EpochsFIF  |   448 events (all good), -0.2 - 1.2 sec, baseline [-0.2, 0], ~131.6 MB, data loaded,
+ '1': 448>
+Got paired X: (448, 272, 141) and y: (448,)
+Got paired X: (2865, 272, 141) and y: (2865,)
+Found 10 files that ends with _ica-raw.fif
+>> Got <Raw | block_07_ica-raw.fif, 409 x 3764880 (3137.4 s), ~1017 kB, data not loaded> from ['/home/zcc/RSVP_dataset/processed_data/MEG_S04/block_07_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S04/block_08_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S04/block_09_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S04/block_10_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S04/block_05_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S04/block_12_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S04/block_03_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S04/block_11_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S04/block_06_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S04/block_04_ica-raw.fif']
+Reading /home/zcc/RSVP_dataset/memory/MEG_S04-U07-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+4804 matching events found
+No baseline correction applied
+Not setting metadata
+0 projection items activated
+>> Raw epochs are recalled from memory: <EpochsFIF  |   4804 events (all good), -0.2 - 1.2 sec, baseline off, ~1.37 GB, data loaded,
+ '1': 560
+ '2': 3659
+ '3': 585>
+Reading /home/zcc/RSVP_dataset/memory/MEG_S04-U07-denoise-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+4804 matching events found
+Applying baseline correction (mode: mean)
+Not setting metadata
+0 projection items activated
+>> Denoise epochs are recalled from memory: <EpochsFIF  |   4804 events (all good), -0.2 - 1.2 sec, baseline [-0.2, 0], ~1.37 GB, data loaded,
+ '1': 560
+ '2': 3659
+ '3': 585>
+Reading /home/zcc/RSVP_dataset/memory/MEG_S04-U07-clean-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+560 matching events found
+Applying baseline correction (mode: mean)
+Not setting metadata
+0 projection items activated
+>> Clean epochs are recalled from memory: <EpochsFIF  |   560 events (all good), -0.2 - 1.2 sec, baseline [-0.2, 0], ~164.4 MB, data loaded,
+ '1': 560>
+Got paired X: (560, 272, 141) and y: (560,)
+Got paired X: (3659, 272, 141) and y: (3659,)
+Found 10 files that ends with _ica-raw.fif
+>> Got <Raw | block_07_ica-raw.fif, 409 x 2866992 (2389.2 s), ~1017 kB, data not loaded> from ['/home/zcc/RSVP_dataset/processed_data/MEG_S05/block_07_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S05/block_08_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S05/block_09_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S05/block_10_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S05/block_05_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S05/block_12_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S05/block_03_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S05/block_11_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S05/block_06_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S05/block_04_ica-raw.fif']
+Reading /home/zcc/RSVP_dataset/memory/MEG_S05-U07-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+4647 matching events found
+No baseline correction applied
+Not setting metadata
+0 projection items activated
+>> Raw epochs are recalled from memory: <EpochsFIF  |   4647 events (all good), -0.2 - 1.2 sec, baseline off, ~1.33 GB, data loaded,
+ '1': 560
+ '2': 3634
+ '3': 453>
+Reading /home/zcc/RSVP_dataset/memory/MEG_S05-U07-denoise-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+4647 matching events found
+Applying baseline correction (mode: mean)
+Not setting metadata
+0 projection items activated
+>> Denoise epochs are recalled from memory: <EpochsFIF  |   4647 events (all good), -0.2 - 1.2 sec, baseline [-0.2, 0], ~1.33 GB, data loaded,
+ '1': 560
+ '2': 3634
+ '3': 453>
+Reading /home/zcc/RSVP_dataset/memory/MEG_S05-U07-clean-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+560 matching events found
+Applying baseline correction (mode: mean)
+Not setting metadata
+0 projection items activated
+>> Clean epochs are recalled from memory: <EpochsFIF  |   560 events (all good), -0.2 - 1.2 sec, baseline [-0.2, 0], ~164.4 MB, data loaded,
+ '1': 560>
+Got paired X: (560, 272, 141) and y: (560,)
+Got paired X: (3634, 272, 141) and y: (3634,)
+Found 10 files that ends with _ica-raw.fif
+>> Got <Raw | block_07_ica-raw.fif, 409 x 2919216 (2432.7 s), ~1017 kB, data not loaded> from ['/home/zcc/RSVP_dataset/processed_data/MEG_S06/block_07_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S06/block_08_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S06/block_09_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S06/block_10_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S06/block_05_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S06/block_12_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S06/block_03_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S06/block_11_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S06/block_06_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S06/block_04_ica-raw.fif']
+Reading /home/zcc/RSVP_dataset/memory/MEG_S06-U07-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+4674 matching events found
+No baseline correction applied
+Not setting metadata
+0 projection items activated
+>> Raw epochs are recalled from memory: <EpochsFIF  |   4674 events (all good), -0.2 - 1.2 sec, baseline off, ~1.34 GB, data loaded,
+ '1': 560
+ '2': 3623
+ '3': 491>
+Reading /home/zcc/RSVP_dataset/memory/MEG_S06-U07-denoise-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+4674 matching events found
+Applying baseline correction (mode: mean)
+Not setting metadata
+0 projection items activated
+>> Denoise epochs are recalled from memory: <EpochsFIF  |   4674 events (all good), -0.2 - 1.2 sec, baseline [-0.2, 0], ~1.34 GB, data loaded,
+ '1': 560
+ '2': 3623
+ '3': 491>
+Reading /home/zcc/RSVP_dataset/memory/MEG_S06-U07-clean-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+560 matching events found
+Applying baseline correction (mode: mean)
+Not setting metadata
+0 projection items activated
+>> Clean epochs are recalled from memory: <EpochsFIF  |   560 events (all good), -0.2 - 1.2 sec, baseline [-0.2, 0], ~164.4 MB, data loaded,
+ '1': 560>
+Got paired X: (560, 272, 141) and y: (560,)
+Got paired X: (3623, 272, 141) and y: (3623,)
+Found 10 files that ends with _ica-raw.fif
+>> Got <Raw | block_07_ica-raw.fif, 409 x 2828832 (2357.4 s), ~1017 kB, data not loaded> from ['/home/zcc/RSVP_dataset/processed_data/MEG_S07/block_07_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S07/block_08_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S07/block_09_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S07/block_10_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S07/block_05_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S07/block_12_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S07/block_03_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S07/block_11_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S07/block_06_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S07/block_04_ica-raw.fif']
+Reading /home/zcc/RSVP_dataset/memory/MEG_S07-U07-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+4735 matching events found
+No baseline correction applied
+Not setting metadata
+0 projection items activated
+>> Raw epochs are recalled from memory: <EpochsFIF  |   4735 events (all good), -0.2 - 1.2 sec, baseline off, ~1.35 GB, data loaded,
+ '1': 560
+ '2': 3642
+ '3': 533>
+Reading /home/zcc/RSVP_dataset/memory/MEG_S07-U07-denoise-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+4735 matching events found
+Applying baseline correction (mode: mean)
+Not setting metadata
+0 projection items activated
+>> Denoise epochs are recalled from memory: <EpochsFIF  |   4735 events (all good), -0.2 - 1.2 sec, baseline [-0.2, 0], ~1.35 GB, data loaded,
+ '1': 560
+ '2': 3642
+ '3': 533>
+Reading /home/zcc/RSVP_dataset/memory/MEG_S07-U07-clean-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+560 matching events found
+Applying baseline correction (mode: mean)
+Not setting metadata
+0 projection items activated
+>> Clean epochs are recalled from memory: <EpochsFIF  |   560 events (all good), -0.2 - 1.2 sec, baseline [-0.2, 0], ~164.4 MB, data loaded,
+ '1': 560>
+Got paired X: (560, 272, 141) and y: (560,)
+Got paired X: (3642, 272, 141) and y: (3642,)
+Found 11 files that ends with _ica-raw.fif
+>> Got <Raw | block_07_ica-raw.fif, 409 x 3027120 (2522.6 s), ~1017 kB, data not loaded> from ['/home/zcc/RSVP_dataset/processed_data/MEG_S08/block_07_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S08/block_08_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S08/block_09_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S08/block_10_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S08/block_05_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S08/block_12_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S08/block_03_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S08/block_11_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S08/block_06_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S08/block_04_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S08/block_13_ica-raw.fif']
+Reading /home/zcc/RSVP_dataset/memory/MEG_S08-U07-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+5103 matching events found
+No baseline correction applied
+Not setting metadata
+0 projection items activated
+>> Raw epochs are recalled from memory: <EpochsFIF  |   5103 events (all good), -0.2 - 1.2 sec, baseline off, ~1.46 GB, data loaded,
+ '1': 616
+ '2': 3961
+ '3': 526>
+Reading /home/zcc/RSVP_dataset/memory/MEG_S08-U07-denoise-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+5103 matching events found
+Applying baseline correction (mode: mean)
+Not setting metadata
+0 projection items activated
+>> Denoise epochs are recalled from memory: <EpochsFIF  |   5103 events (all good), -0.2 - 1.2 sec, baseline [-0.2, 0], ~1.46 GB, data loaded,
+ '1': 616
+ '2': 3961
+ '3': 526>
+Reading /home/zcc/RSVP_dataset/memory/MEG_S08-U07-clean-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+616 matching events found
+Applying baseline correction (mode: mean)
+Not setting metadata
+0 projection items activated
+>> Clean epochs are recalled from memory: <EpochsFIF  |   616 events (all good), -0.2 - 1.2 sec, baseline [-0.2, 0], ~180.8 MB, data loaded,
+ '1': 616>
+Got paired X: (616, 272, 141) and y: (616,)
+Got paired X: (3961, 272, 141) and y: (3961,)
+Found 11 files that ends with _ica-raw.fif
+>> Got <Raw | block_07_ica-raw.fif, 409 x 3079728 (2566.4 s), ~1017 kB, data not loaded> from ['/home/zcc/RSVP_dataset/processed_data/MEG_S09/block_07_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S09/block_08_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S09/block_09_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S09/block_10_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S09/block_05_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S09/block_12_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S09/block_03_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S09/block_11_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S09/block_06_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S09/block_04_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S09/block_13_ica-raw.fif']
+Reading /home/zcc/RSVP_dataset/memory/MEG_S09-U07-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+5095 matching events found
+No baseline correction applied
+Not setting metadata
+0 projection items activated
+>> Raw epochs are recalled from memory: <EpochsFIF  |   5095 events (all good), -0.2 - 1.2 sec, baseline off, ~1.46 GB, data loaded,
+ '1': 616
+ '2': 3956
+ '3': 523>
+Reading /home/zcc/RSVP_dataset/memory/MEG_S09-U07-denoise-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+5095 matching events found
+Applying baseline correction (mode: mean)
+Not setting metadata
+0 projection items activated
+>> Denoise epochs are recalled from memory: <EpochsFIF  |   5095 events (all good), -0.2 - 1.2 sec, baseline [-0.2, 0], ~1.46 GB, data loaded,
+ '1': 616
+ '2': 3956
+ '3': 523>
+Reading /home/zcc/RSVP_dataset/memory/MEG_S09-U07-clean-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+616 matching events found
+Applying baseline correction (mode: mean)
+Not setting metadata
+0 projection items activated
+>> Clean epochs are recalled from memory: <EpochsFIF  |   616 events (all good), -0.2 - 1.2 sec, baseline [-0.2, 0], ~180.8 MB, data loaded,
+ '1': 616>
+Got paired X: (616, 272, 141) and y: (616,)
+Got paired X: (3956, 272, 141) and y: (3956,)
+Found 10 files that ends with _ica-raw.fif
+>> Got <Raw | block_07_ica-raw.fif, 409 x 3058176 (2548.5 s), ~1017 kB, data not loaded> from ['/home/zcc/RSVP_dataset/processed_data/MEG_S10/block_07_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S10/block_08_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S10/block_09_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S10/block_10_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S10/block_05_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S10/block_12_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S10/block_03_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S10/block_11_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S10/block_06_ica-raw.fif', '/home/zcc/RSVP_dataset/processed_data/MEG_S10/block_04_ica-raw.fif']
+Reading /home/zcc/RSVP_dataset/memory/MEG_S10-U07-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+4634 matching events found
+No baseline correction applied
+Not setting metadata
+0 projection items activated
+>> Raw epochs are recalled from memory: <EpochsFIF  |   4634 events (all good), -0.2 - 1.2 sec, baseline off, ~1.32 GB, data loaded,
+ '1': 560
+ '2': 3621
+ '3': 453>
+Reading /home/zcc/RSVP_dataset/memory/MEG_S10-U07-denoise-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+4634 matching events found
+Applying baseline correction (mode: mean)
+Not setting metadata
+0 projection items activated
+>> Denoise epochs are recalled from memory: <EpochsFIF  |   4634 events (all good), -0.2 - 1.2 sec, baseline [-0.2, 0], ~1.32 GB, data loaded,
+ '1': 560
+ '2': 3621
+ '3': 453>
+Reading /home/zcc/RSVP_dataset/memory/MEG_S10-U07-clean-epo.fif ...
+    Found the data of interest:
+        t =    -200.00 ...    1200.00 ms
+        0 CTF compensation matrices available
+560 matching events found
+Applying baseline correction (mode: mean)
+Not setting metadata
+0 projection items activated
+>> Clean epochs are recalled from memory: <EpochsFIF  |   560 events (all good), -0.2 - 1.2 sec, baseline [-0.2, 0], ~164.4 MB, data loaded,
+ '1': 560>
+Got paired X: (560, 272, 141) and y: (560,)
+Got paired X: (3621, 272, 141) and y: (3621,)
