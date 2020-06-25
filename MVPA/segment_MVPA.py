@@ -10,7 +10,7 @@ import numpy as np
 
 # MNE
 import mne
-from mne.decoding import SlidingEstimator
+from mne.decoding import Vectorizer
 
 # sklearn
 from sklearn import svm
@@ -41,7 +41,7 @@ if not os.path.exists(RESULTS_FOLDER):
     os.mkdir(RESULTS_FOLDER)
 
 
-def pair_X_y(epochs, label):
+def pair_X_y(epochs, label, crop):
     """pair_X_y Get paired X and y,
 
     Make sure the epochs has only one class of data,
@@ -54,7 +54,7 @@ def pair_X_y(epochs, label):
     Returns:
         [type]: [description]
     """
-    X = epochs.get_data()
+    X = epochs.copy().crop(crop[0], crop[1]).get_data()
     num = X.shape[0]
     y = np.zeros(num,) + label
     print(f'Got paired X: {X.shape} and y: {y.shape}')
@@ -73,55 +73,60 @@ for idx in range(1, 11):
     # MVPA ----------------------------------------------------------------
     # Prepare classifiers
     _svm = svm.SVC(gamma='scale', kernel='rbf', class_weight='balanced')
-    clf = make_pipeline(StandardScaler(), _svm)
-    estimator = SlidingEstimator(clf, n_jobs=n_jobs, scoring='f1', verbose=1)
+    clf = make_pipeline(Vectorizer(), StandardScaler(), _svm)
 
     # Prepare paired X and y
-    # Get X and y for class 1
-    X1, y1 = pair_X_y(worker.clean_epochs, 1)
+    # Set crop
+    crops = dict(
+        a=(0.2, 0.4),
+        b=(0.4, 0.6),
+        c=(0.6, 0.8),
+        d=(0.2, 0.8))
 
-    # Get X and y for class 2
-    X2, y2 = pair_X_y(worker.denoise_epochs['2'], 2)
+    output_dict = dict()
 
-    # Concatenate X and y
-    X_all = np.concatenate([X1, X2], axis=0)
-    y_all = np.concatenate([y1, y2], axis=0)
+    for crop_key in crops:
+        crop = crops[crop_key]
+        # Get X and y for class 1
+        X1, y1 = pair_X_y(worker.clean_epochs, 1, crop)
 
-    # Get time line
-    times = worker.clean_epochs.times
+        # Get X and y for class 2
+        X2, y2 = pair_X_y(worker.denoise_epochs['2'], 2, crop)
 
-    # Estimate n_splits
-    n_splits = int(y1.shape[0] / 56)
-    print(f'Splitting in {n_splits} splits')
+        # Concatenate X and y
+        X_all = np.concatenate([X1, X2], axis=0)
+        y_all = np.concatenate([y1, y2], axis=0)
 
-    # Cross validation using sliding window -------------------------------
-    # Prepare predicted label matrix
-    num_samples, num_times = X_all.shape[0], X_all.shape[2]
-    y_pred_sliding = np.zeros((num_samples, num_times))
+        # Estimate n_splits
+        n_splits = int(y1.shape[0] / 56)
+        print(f'Splitting in {n_splits} splits')
 
-    # Cross validation
-    skf = StratifiedKFold(n_splits=n_splits, shuffle=False)
-    for train_index, test_index in skf.split(X_all, y_all):
-        # Separate training and testing data
-        X_train, y_train = X_all[train_index], y_all[train_index]
-        X_test, y_test = X_all[test_index], y_all[test_index]
+        # Cross validation using sliding window -------------------------------
+        # Prepare predicted label matrix
+        num_samples, num_times = X_all.shape[0], X_all.shape[2]
+        y_pred = np.zeros((num_samples,))
 
-        # Fit estimator
-        estimator.fit(X_train, y_train)
+        # Cross validation
+        skf = StratifiedKFold(n_splits=n_splits, shuffle=False)
+        for train_index, test_index in skf.split(X_all, y_all):
+            # Separate training and testing data
+            X_train, y_train = X_all[train_index], y_all[train_index]
+            X_test, y_test = X_all[test_index], y_all[test_index]
 
-        # Predict
-        y_pred_sliding[test_index] = estimator.predict(X_test)
+            # Fit estimator
+            clf.fit(X_train, y_train)
 
-    # Summary results
-    output_dict = dict(
-        times=times,
-        y_all=y_all,
-        y_pred_sliding=y_pred_sliding,
-    )
+            # Predict
+            y_pred[test_index] = clf.predict(X_test)
+
+        # Summary results
+        output_dict['y_all'] = y_all
+        output_dict[f'{crop_key}_y_pred'] = y_pred
+        output_dict[f'{crop_key}_crop'] = crop
 
     # Save results
     with open(os.path.join(RESULTS_FOLDER,
-                           f'{running_name}_sliding.pkl'), 'wb') as f:
+                           f'{running_name}_segment.pkl'), 'wb') as f:
         pickle.dump(output_dict, f)
 
 # %%

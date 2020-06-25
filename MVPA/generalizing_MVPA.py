@@ -92,12 +92,13 @@ for idx in range(1, 11):
     times = worker.clean_epochs.times
 
     # Estimate n_splits
-    n_splits = int(y1.shape[0] / 64)
+    n_splits = int(y1.shape[0] / 56)
+    print(f'Splitting in {n_splits} splits')
 
     # Cross validation using sliding window -------------------------------
     # Prepare predicted label matrix
     num_samples, num_times = X_all.shape[0], X_all.shape[2]
-    y_pred_time = np.zeros((num_samples, num_times, num_times))
+    y_pred_generalizing = np.zeros((num_samples, num_times, num_times))
 
     # Cross validation
     skf = StratifiedKFold(n_splits=n_splits, shuffle=False)
@@ -111,13 +112,13 @@ for idx in range(1, 11):
 
         # Predict
         y = estimator.predict(X_test)
-        y_pred_time[test_index] = y
+        y_pred_generalizing[test_index] = y
 
     # Summary results
     output_dict = dict(
         times=times,
         y_all=y_all,
-        y_pred_time=y_pred_time,
+        y_pred_generalizing=y_pred_generalizing,
     )
 
     # Save results
