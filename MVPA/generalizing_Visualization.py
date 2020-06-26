@@ -50,12 +50,12 @@ def fuck_report(report):
     return fucked_report
 
 
-def fill_matrix(j, y_true, y_pred_time, time_report):
+def fill_matrix(j, y_true, y_pred_generalizing, time_report):
     print(f'Start {j}.')
 
     reports = [e for e in range(141)]
     for k in range(141):
-        y_pred = y_pred_time[:, j, k]
+        y_pred = y_pred_generalizing[:, j, k]
         report = metrics.classification_report(y_true=y_true,
                                                y_pred=y_pred,
                                                output_dict=True)
@@ -71,9 +71,9 @@ def fill_matrix(j, y_true, y_pred_time, time_report):
     print(f'Stop {j}.')
 
 
-def get_time_report(y_true, y_pred_time):
+def get_time_report(y_true, y_pred_generalizing):
     report = metrics.classification_report(y_true=y_true,
-                                           y_pred=y_pred_time[:, 0, 0],
+                                           y_pred=y_pred_generalizing[:, 0, 0],
                                            output_dict=True)
     time_report = fuck_report(report)
     for key in time_report:
@@ -86,7 +86,7 @@ def get_time_report(y_true, y_pred_time):
         t = threading.Thread(target=fill_matrix,
                              kwargs=dict(j=j,
                                          y_true=y_true.copy(),
-                                         y_pred_time=y_pred_time.copy(),
+                                         y_pred_generalizing=y_pred_generalizing.copy(),
                                          time_report=time_report))
         threading_pool.append(t)
         t.start()
@@ -127,15 +127,15 @@ for idx in range(1, 11):
                            f'{running_name}_generalizing.pkl'), 'rb') as f:
         mvpa_dict = pickle.load(f)
 
-    # Get y_all, y_pred_times and times
+    # Get y_all, y_pred_generalizing and times
     y_all = mvpa_dict['y_all']
-    y_pred_time = mvpa_dict['y_pred_time']
+    y_pred_generalizing = mvpa_dict['y_pred_generalizing']
     times = mvpa_dict['times']
 
     # Generate time report ----------------------------------
     if RE_COMPUTE:
         time_report = get_time_report(y_true=y_all,
-                                      y_pred_time=y_pred_time)
+                                      y_pred_generalizing=y_pred_generalizing)
 
         with open(os.path.join(TMP_FOLDER,
                                f'time_report_generalizing_{running_name}.pkl'), 'wb') as f:

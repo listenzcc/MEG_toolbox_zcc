@@ -3,6 +3,8 @@
 import os
 import sys
 import pickle
+from pprint import pprint
+from collections import defaultdict
 
 # Computing --------------------------------------
 # numpy
@@ -45,16 +47,16 @@ def fuck_report(report):
     return fucked_report
 
 
-def get_time_report(y_true, y_pred_sliding):
+def get_time_report(y_true, y_pred_time):
     report = metrics.classification_report(y_true=y_true,
-                                           y_pred=y_pred_sliding[:, 0],
+                                           y_pred=y_pred_time[:, 0],
                                            output_dict=True)
     time_report = fuck_report(report)
     for key in time_report:
         print(key)
         time_report[key] = []
 
-    for j, y_pred in enumerate(y_pred_sliding.transpose()):
+    for j, y_pred in enumerate(y_pred_time.transpose()):
         report = metrics.classification_report(y_true=y_true,
                                                y_pred=y_pred,
                                                output_dict=True)
@@ -67,6 +69,9 @@ def get_time_report(y_true, y_pred_sliding):
 
 
 # %%
+
+crop_summary = defaultdict(dict)
+
 for idx in range(1, 11):
     # Loading data ------------------------------------------
     running_name = f'MEG_S{idx:02d}'
@@ -74,43 +79,50 @@ for idx in range(1, 11):
 
     # Read pickle
     with open(os.path.join(RESULTS_FOLDER,
-                           f'{running_name}_sliding.pkl'), 'rb') as f:
+                           f'{running_name}_segment.pkl'), 'rb') as f:
         mvpa_dict = pickle.load(f)
 
-    # Get y_all, y_pred_sliding and times
-    y_all = mvpa_dict['y_all']
-    y_pred_sliding = mvpa_dict['y_pred_sliding']
-    times = mvpa_dict['times']
+    for crop_name in ['a', 'b', 'c', 'd']:
+        # Get y_all, y_pred
+        y_all = mvpa_dict['y_all']
+        y_pred = mvpa_dict[f'{crop_name}_y_pred']
 
-    # Generate time report ----------------------------------
-    time_report = get_time_report(y_true=y_all,
-                                  y_pred_sliding=y_pred_sliding)
+        # Generate time report ----------------------------------
+        report = metrics.classification_report(y_true=y_all,
+                                               y_pred=y_pred,
+                                               output_dict=True)
+        report = fuck_report(report)
+        # pprint(report)
 
-    # Plot --------------------------------------------------
-    # Prepare axes
-    plt.style.use('ggplot')
-    fig, axes = plt.subplots(2, 3, figsize=(9, 6), constrained_layout=True)
-    axes = np.ravel(axes)
+        # Record
+        for key in report:
+            if key in crop_summary[crop_name]:
+                crop_summary[crop_name][key].append(report[key])
+            else:
+                crop_summary[crop_name][key] = [report[key]]
 
-    # Set groups
-    groups = ['1.0', '2.0', 'macro', 'weighted', 'accuracy']
-
-    # Plot in curve
-    for j, prefix in enumerate(groups):
-        for key in [e for e in time_report if e.startswith(prefix)]:
-            axes[j].plot(times, time_report[key], label=key)
-
-    # Add legends
-    for j in range(5):
-        axes[j].set_xticks([-0.2, 0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2])
-        axes[j].set_ylim([0.0, 1.0])
-        axes[j].legend(loc='lower right', bbox_to_anchor=(1, 0))
-
-    fig.suptitle(f'{running_name}')
-
-    DRAWER.fig = fig
 
 # %%
-DRAWER.save('sliding.pdf')
+plt.style.use('ggplot')
+
+fig, axes = plt.subplots(1, 4, figsize=(16, 4))
+axes = np.ravel(axes)
+
+for j, crop_name in enumerate(crop_summary):
+    ax = axes[j]
+
+    summary = crop_summary[crop_name]
+
+    ax.bar(x=[e for e in summary],
+           height=[np.mean(e) for e in summary.values()],
+           yerr=[np.std(e) / 2 for e in summary.values()])
+
+    for label in ax.get_xticklabels():
+        label.set_ha('left')
+        label.set_rotation(-45)
+
+    ax.set_ylim((0.8, 1.0))
+    ax.set_title(f'{crop_name} - Metrics')
+
 
 # %%
