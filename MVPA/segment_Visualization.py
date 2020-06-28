@@ -82,7 +82,7 @@ for idx in range(1, 11):
                            f'{running_name}_segment.pkl'), 'rb') as f:
         mvpa_dict = pickle.load(f)
 
-    for crop_name in ['a', 'b', 'c', 'd']:
+    for crop_name in ['a', 'b', 'c', 'd', 'e']:
         # Get y_all, y_pred
         y_all = mvpa_dict['y_all']
         y_pred = mvpa_dict[f'{crop_name}_y_pred']
@@ -105,7 +105,7 @@ for idx in range(1, 11):
 # %%
 plt.style.use('ggplot')
 
-fig, axes = plt.subplots(1, 4, figsize=(16, 4))
+fig, axes = plt.subplots(1, 5, figsize=(15, 3))
 axes = np.ravel(axes)
 
 for j, crop_name in enumerate(crop_summary):
