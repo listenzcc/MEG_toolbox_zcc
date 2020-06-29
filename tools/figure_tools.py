@@ -1,6 +1,7 @@
 # To make figure operation easier
 
 import os
+import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 
@@ -28,7 +29,13 @@ class Drawer():
         """
         self._fig = f
         self.figures.append(f)
-        print(f'New figure added, {self.figures.__len__()} in all.')
+        print(f'New figure added, {self.figures.__len__()} in total.')
+
+    def clear_figures(self):
+        for fig in self.figures:
+            plt.close(fig)
+        print(f'Cleared all figures, {len(self.figures)} in total.')
+        self.figures = []
 
     def save(self, filename, override=True):
         """Draw fig objects into .pdf file
