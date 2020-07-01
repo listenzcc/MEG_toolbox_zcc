@@ -20,6 +20,7 @@ for idx in range(1, 11):
     # Setting -------------------------------------------
     running_name = f'MEG_S{idx:02d}'
     band_name = 'U07'
+    times = [0.3, 0.5, 0.7]
 
     # Worker pipeline -----------------------------------
     worker = MEG_Worker(running_name=running_name)
@@ -31,13 +32,13 @@ for idx in range(1, 11):
 
     # Plotting evoked
     viz.load_epochs(worker.denoise_epochs)
-    viz.plot_joint('1')
-    viz.plot_joint('2')
-    viz.plot_joint('3')
+    viz.plot_joint('1', times=times)
+    viz.plot_joint('2', times=times)
+    viz.plot_joint('3', times=times)
 
     # Plotting evoked of clean
     viz.load_epochs(worker.clean_epochs)
-    viz.plot_joint('1', title='clean-1')
+    viz.plot_joint('1', title='clean-1', times=times)
 
     # Plotting lags
     viz.plot_lags(worker.paired_lags_timelines)

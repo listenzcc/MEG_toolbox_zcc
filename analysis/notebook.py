@@ -9,6 +9,7 @@ import numpy as np
 
 # Plotting
 import matplotlib.pyplot as plt
+from surfer import Brain
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'tools'))  # noqa
 from MEG_worker import MEG_Worker
@@ -26,49 +27,40 @@ worker = MEG_Worker(running_name=running_name)
 worker.pipeline(band_name=band_name)
 
 # %%
-viz = Visualizer(title_prefix=running_name)
-
-viz.load_epochs(worker.denoise_epochs)
-viz.plot_joint('1')
-viz.plot_joint('2')
-viz.plot_joint('3')
-
-viz.load_epochs(worker.clean_epochs)
-viz.plot_joint('1', title='clean-1')
-
-viz.plot_lags(worker.paired_lags_timelines)
-
-viz.save_figs(f'{running_name}.pdf')
-
-# %%
+# epochs = worker.denoise_epochs['3']
+epochs = worker.clean_epochs
 solver = Inverse_Solver(running_name=running_name)
-solver.pipeline(obj=worker.clean_epochs.average(),
-                epochs=worker.clean_epochs,
+solver.pipeline(epochs=epochs,
                 raw_info=worker.raw.info)
 
 # %%
-solver.stc
+stc, stc_fsaverage = solver.estimate(obj=epochs.average())
 
 # %%
-solver.stc_fsaverage
+labels = mne.read_labels_from_annot('fsaverage', 'aparc', 'lh')
+
+brain = Brain('fsaverage', 'lh', 'inflated',
+              cortex='low_contrast', background='white', size=(800, 600))
+brain.add_annotation('aparc')
+# aud_label = [label for label in labels if label.name == 'L_A1_ROI-lh'][0]
+# brain.add_label(aud_label, borders=False)
 
 # %%
-mne.viz.set_3d_backend('pyvista')
+# mne.viz.set_3d_backend('pyvista')
 
-alldata = sorted(solver.stc_fsaverage.data.ravel(), reverse=True)
-n = len(alldata)
-surfer_kwargs = dict(hemi='both',
-                     clim=dict(kind='value',
-                               lims=[alldata[int(n * r)] for r in [0.05, 0.01, 0]]),
-                     views='lateral',
-                     initial_time=0.4,
-                     time_unit='s',
-                     size=(800, 800),
-                     smoothing_steps=10)
+# alldata = sorted(solver.stc_fsaverage.data.ravel(), reverse=True)
+# n = len(alldata)
+# surfer_kwargs = dict(hemi='both',
+#                      clim=dict(kind='value',
+#                                lims=[alldata[int(n * r)] for r in [0.05, 0.01, 0]]),
+#                      views='lateral',
+#                      initial_time=0.4,
+#                      time_unit='s',
+#                      size=(800, 800),
+#                      smoothing_steps=10)
 
-# This can not be operated using VS code
-brain = solver.stc_fsaverage.plot(**surfer_kwargs)
-
+# # This can not be operated using VS code
+# brain = solver.stc_fsaverage.plot(**surfer_kwargs)
 
 # %%
 input('Press enter to escape.')

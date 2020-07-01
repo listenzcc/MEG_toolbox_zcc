@@ -76,28 +76,29 @@ class Inverse_Solver():
 
         # Report and return
         print(f'Computed inverse operator: {inv}')
+        self.fwd = fwd
+        self.cov = cov
+
         return inv
 
     def pipeline(self,
-                 obj,
+                 epochs,
                  re_compute_inv=False,
                  loose=0.2,
                  depth=0.8,
                  lambda2=1/9,
                  n_jobs=48,
-                 epochs=None,
                  raw_info=None):
         """Inverse opeartion pipeline,
         if [re_compute_inv], it will re-compute the inverse operator ignoring the memory.
 
         Args:
-            obj ({obj}): Epochs or Evoked
+            epochs: The epochs to compute the inverse operator. Defaults to None.
             re_compute_inv ({bool}, optional): If recompute the inverse operator. Defaults to False.
             loose ({float}, optional): Parameter to compute the inverse operator. Defaults to 0.2.
             depth ({float}, optional): Parameter fo compute the inverse operator. Defaults to 0.8.
             lambda2 ({float}, optional): Parameter to compute the stc. Defaults to 1/9.
             n_jobs ({int}, optional): n_jobs of parall computation. Defaults to 48.
-            epochs ({Epochs}, optional): The epochs to compute the inverse operator. Defaults to None.
             raw_info ({Info}, optional): The raw_info to compute the inverse operator. Defaults to None.
         """
 
@@ -135,20 +136,27 @@ class Inverse_Solver():
         if self.use_memory:
             mne.minimum_norm.write_inverse_operator(memory_path, self.inv)
 
+    def estimate(self, obj, subject_to='fsaverage', spacing=6, lambda2=1/9):
         # Compute SourceEstimate --------------------------------------------
+        # obj ({obj}): Epochs or Evoked
         # SourceEstimate in individual space
-        self.stc = mne.minimum_norm.apply_inverse(obj,
-                                                  self.inv,
-                                                  lambda2=lambda2)
+        stc = mne.minimum_norm.apply_inverse(obj,
+                                             self.inv,
+                                             lambda2=lambda2)
+        print(f'Estimated stc: {stc}')
 
         # SourceMorph to fsaverage space
         morph = mne.compute_source_morph(src=self.inv['src'],
-                                         subject_from=self.stc.subject,
-                                         subject_to='fsaverage',
-                                         spacing=6)
+                                         subject_from=stc.subject,
+                                         subject_to=subject_to,
+                                         spacing=spacing)
 
         # SourceEstimate in fsaverage space
-        self.stc_fsaverage = morph.apply(self.stc)
+        stc_morph = morph.apply(stc)
+        print(f'Estimated morphed stc: {stc_morph}')
+
+        # Return
+        return stc, stc_morph
 
 
 # %%

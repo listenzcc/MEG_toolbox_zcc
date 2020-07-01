@@ -63,7 +63,6 @@ def relabel(events, sfreq):
             # If [j] is out of range of events,
             # break out the 'while True' loop.
             if j == events.shape[0]:
-
                 break
     # Return re-labeled [events]
     return events
