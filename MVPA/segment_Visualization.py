@@ -105,7 +105,7 @@ for idx in range(1, 11):
 # %%
 plt.style.use('ggplot')
 
-fig, axes = plt.subplots(1, 5, figsize=(15, 3))
+fig, axes = plt.subplots(3, 2, figsize=(10, 15))
 axes = np.ravel(axes)
 
 for j, crop_name in enumerate(crop_summary):
@@ -124,5 +124,10 @@ for j, crop_name in enumerate(crop_summary):
     ax.set_ylim((0.8, 1.0))
     ax.set_title(f'{crop_name} - Metrics')
 
+fig.tight_layout()
+
+# %%
+DRAWER.fig = fig
+DRAWER.save('segment.pdf')
 
 # %%
