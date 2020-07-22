@@ -86,6 +86,14 @@ for idx in range(1, 11):
     time_report = get_time_report(y_true=y_all,
                                   y_pred_sliding=y_pred_sliding)
 
+    if idx == 1:
+        mean_time_report = time_report
+        mean_counting = 1
+    else:
+        for key in time_report:
+            mean_time_report[key] += time_report[key]
+        mean_counting += 1
+
     # Plot --------------------------------------------------
     # Prepare axes
     plt.style.use('ggplot')
@@ -109,6 +117,34 @@ for idx in range(1, 11):
     fig.suptitle(f'{running_name}')
 
     DRAWER.fig = fig
+
+for key in mean_time_report:
+    mean_time_report[key] = [e / mean_counting for e in mean_time_report[key]]
+
+# Plot --------------------------------------------------
+# Prepare axes
+plt.style.use('ggplot')
+fig, axes = plt.subplots(2, 3, figsize=(9, 6), constrained_layout=True)
+axes = np.ravel(axes)
+
+# Set groups
+groups = ['1.0', '2.0', 'macro', 'weighted', 'accuracy']
+
+# Plot in curve
+for j, prefix in enumerate(groups):
+    for key in [e for e in time_report if e.startswith(prefix)]:
+        axes[j].plot(times, time_report[key], label=key)
+
+# Add legends
+for j in range(5):
+    axes[j].set_xticks([-0.2, 0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2])
+    axes[j].set_ylim([0.0, 1.0])
+    axes[j].legend(loc='lower right', bbox_to_anchor=(1, 0))
+
+fig.suptitle(f'MEAN')
+
+DRAWER.fig = fig
+
 
 # %%
 DRAWER.save('sliding.pdf')

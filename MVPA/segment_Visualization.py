@@ -70,6 +70,13 @@ def get_time_report(y_true, y_pred_time):
 
 # %%
 
+crops_table = dict(a=(0.2, 0.4),
+                   b=(0.4, 0.6),
+                   c=(0.6, 0.8),
+                   d=(0.2, 0.8),
+                   e=(0.0, 1.0))
+
+
 crop_summary = defaultdict(dict)
 
 for idx in range(1, 11):
@@ -125,9 +132,32 @@ for j, crop_name in enumerate(crop_summary):
     ax.set_title(f'{crop_name} - Metrics')
 
 fig.tight_layout()
+DRAWER.fig = fig
 
 # %%
+fig, axes = plt.subplots(1, 4, figsize=(12, 3))
+axes = np.ravel(axes)
+
+for j, crop_name in enumerate(crop_summary):
+    if j >= 4:
+        continue
+    range_str = crops_table[crop_name]
+
+    ax = axes[j]
+    for score_name in ['1.0-recall', '1.0-f1-score', 'accuracy']:
+        scores = crop_summary[crop_name][score_name]
+        ax.bar(x=score_name.split('-', 1)[-1].title(),
+               height=np.mean(scores),
+               yerr=np.std(scores) / 2)
+
+    ax.set_title(f'Range: {range_str}')
+    ax.set_ylim((0.8, 1.0))
+
+fig.tight_layout()
 DRAWER.fig = fig
+
+
+# %%
 DRAWER.save('segment.pdf')
 
 # %%
