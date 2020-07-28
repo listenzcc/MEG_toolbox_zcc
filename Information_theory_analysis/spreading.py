@@ -89,7 +89,7 @@ def compute_entropy_matrix(data1, data2, num_sensors, compare_name):
 
 
 # %%
-for idx in range(1, 11):
+for idx in [1]:  # range(1, 11):
     # Setting -------------------------------------------
     running_name = f'MEG_S{idx:02d}'
 
@@ -110,7 +110,7 @@ for idx in range(1, 11):
         segments[key] = worker.clean_epochs.copy().crop(crop[0], crop[1])
         segment_data[key] = np.mean(segments[key].get_data(), axis=-1)
 
-    # %% ---------------------------------------------------------------------
+    # ---------------------------------------------------------------------
     # Set up number of sensors
     num_sensors = 272
     names = []
@@ -144,7 +144,7 @@ for idx in range(1, 11):
             else:
                 break
 
-    # %% ----------------------------------------------------------------------
+    # ----------------------------------------------------------------------
     entropy_matrixes = dict()
 
     for n1 in SEGMENT_RANGES:
@@ -155,28 +155,34 @@ for idx in range(1, 11):
             entropy_matrixes[compare_name] = np.load(os.path.join(TMP_DIR,
                                                                   f'{compare_name}.npy'))
 
-    # %% Plot ----------------------------------------------------
+    # Plot ----------------------------------------------------
     # Plot evoked -------------------------------
     DRAWER.fig = worker.clean_epochs.average().plot_joint(
         times=[e['center'] for e in SEGMENT_RANGES.values()],
         title=running_name,
         show=SHOW)
 
-    # %% Plot topo ---------------------------------
-    for base in ['a', 'b', 'c']:
+    # Plot topo ---------------------------------
+    target_segment = 'b'
+    # target_segment = 'd'
+
+    for base in ['a']:
+        print(base)
         # Settings
         # pick = 'MRO12'
 
         # 'b' is not wrong typo, we find pick based on 0.3 second segment
-        evoked = segments['b'].average()
+        evoked = segments[target_segment].average()
         info = evoked.info.copy()
         ch_names = info['ch_names'].copy()
         mean_data = np.mean(evoked.data, axis=-1)
+        # mean_data = - mean_data
+        mean_data = np.abs(mean_data)
 
         _max = -np.inf
         for j, name in enumerate(ch_names):
             ch_names[j] = name.split('-')[0]
-            if not name[2] == 'O':
+            if not name[2] == 'O':  # 'O':
                 continue
             if mean_data[j] > _max:
                 idx_pick = j
@@ -184,13 +190,11 @@ for idx in range(1, 11):
 
         pick = ch_names[idx_pick]
 
-        print(mean_data.shape, idx_pick, pick)
+        print('--', base, mean_data.shape, idx_pick, pick)
 
-        # %%
         evoked = worker.clean_epochs['1'].copy().average()
         times = evoked.times.copy()
         evoked, times
-        # %%
 
         times = np.zeros((6,))
         data = np.zeros((272, 6))
@@ -198,25 +202,49 @@ for idx in range(1, 11):
         for j, name in enumerate(SEGMENT_RANGES):
             center = SEGMENT_RANGES[name]['center']
             times[j] = center
+            # try:
+            #     matrix = entropy_matrixes[f'{running_name}-{base}-{name}']
+            # except:
+            #     continue
+
+            # if name <= base:
+            #     entr = matrix[idx_pick]
+
+            # if name > base:
+            #     _name = chr(ord(name) - 1)
+            #     matrix = entropy_matrixes[f'{running_name}-{_name}-{name}']
+            #     for k in range(272):
+            #         matrix[k] = matrix[k] / np.sum(matrix[k])
+            #     matrix = matrix.transpose()
+            #     entr = np.matmul(matrix, entr)
+
             try:
-                matrix = entropy_matrixes[f'{running_name}-{base}-{name}']
+                assert(name > base)
+                _name = chr(ord(name) - 1)
+                matrix = entropy_matrixes[f'{running_name}-{_name}-{name}']
                 entr = matrix[idx_pick]
                 if not name == base:
                     entr = np.matmul(matrix, entr)
             except:
-                continue
+                pass
 
-            data[:, j] = entr
+            if name == base:
+                matrix = entropy_matrixes[f'{running_name}-{name}-{name}']
+                entr = matrix[idx_pick]
+                data[:, j] = entr
+
+            if name > base:
+                data[:, j] = entr
 
             # times.append(center)
             # data.append(entr)
 
         evoked.times = np.array(times)
         evoked.data = np.array(data)
-        print(evoked.times, evoked.data.shape)
+        print('--', base, evoked.times, evoked.data.shape)
 
         DRAWER.fig = evoked.plot_topomap(times=evoked.times,
-                                         vmin=0,
+                                         #  vmin=-5,
                                          vmax=5,
                                          scalings=dict(mag=1),
                                          title=f'{running_name} - {pick} - {base}',
