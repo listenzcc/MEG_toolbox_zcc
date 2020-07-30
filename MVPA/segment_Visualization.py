@@ -2,6 +2,7 @@
 # System -----------------------------------------
 import os
 import sys
+import json
 import pickle
 from pprint import pprint
 from collections import defaultdict
@@ -25,7 +26,8 @@ from figure_tools import Drawer
 DRAWER = Drawer()
 
 # Init results_folder
-RESULTS_FOLDER = os.path.join('.', 'results')
+RESULTS_FOLDER = os.path.join('.', 'results_baseline')
+RESULTS_NAME = os.path.join('.', 'results_baseline.json')
 
 
 def fuck_report(report):
@@ -149,6 +151,7 @@ for j, crop_name in enumerate(crop_summary):
         ax.bar(x=score_name.split('-', 1)[-1].title(),
                height=np.mean(scores),
                yerr=np.std(scores) / 2)
+        print(score_name, range_str, np.mean(scores))
 
     ax.set_title(f'Range: {range_str}')
     ax.set_ylim((0.8, 1.0))
@@ -156,6 +159,8 @@ for j, crop_name in enumerate(crop_summary):
 fig.tight_layout()
 DRAWER.fig = fig
 
+with open(RESULTS_NAME, 'w') as f:
+    json.dump(crop_summary, f)
 
 # %%
 DRAWER.save('segment.pdf')
