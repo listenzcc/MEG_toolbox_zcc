@@ -129,15 +129,15 @@ class Button_Effect_Remover():
         print(f'Computed lags of {len(lags)} samples.')
         return lags
 
-    def zero_out_button(self, e1, e3):
+    def zero_out_button(self, e1='1', e2='2', e3='3'):
         # Settings ------------------------------------------------
         # Times
         times = self.epochs.times
 
-        # Data of [e1]
-        data1 = self.epochs[e1].get_data()
-        num_samples, num_channels, num_times = data1.shape
-        button_data = data1.copy()
+        # Data of [e1, e2]
+        data12 = self.epochs[[e1, e2]].get_data()
+        num_samples, num_channels, num_times = data12.shape
+        button_data = data12.copy()
         lags = self._compute_lags(e1=e1, e3=e3)
 
         # Data of [e3]
@@ -161,7 +161,7 @@ class Button_Effect_Remover():
 
             # Prepare y_true,
             # as the target response
-            y_true = numpy2torch(data1[sample_idx][np.newaxis, :, :])
+            y_true = numpy2torch(data12[sample_idx][np.newaxis, :, :])
 
             # Init timeline as x
             x = numpy2torch(np.zeros((1, 1, 141)))
@@ -192,12 +192,12 @@ class Button_Effect_Remover():
             sorted_timelines=timelines[_orders]
         )
 
-        # Substract button_data from data1
-        clean_data1 = data1 - button_data
-        epochs = self.epochs[e1]
+        # Substract button_data from data12
+        clean_data12 = data12 - button_data
+        epochs = self.epochs[[e1, e2]]
         tmin, tmax = epochs.times[0], epochs.times[-1]
         clean_epochs = mne.BaseEpochs(epochs.info,
-                                      clean_data1,
+                                      clean_data12,
                                       events=epochs.events,
                                       tmin=tmin,
                                       tmax=tmax)
