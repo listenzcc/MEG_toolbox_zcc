@@ -44,7 +44,7 @@ class EEGNet_classifier():
                                                    gamma=0.5)
 
     def fit(self, X, y, quiet=True):
-        for epoch in range(40):
+        for epoch in range(100):
             running_loss = 0
             _skf = StratifiedKFold(n_splits=10, shuffle=True)
             for more, less in _skf.split(X, y):
@@ -123,7 +123,7 @@ for idx in range(1, 11):
     worker = MEG_Worker(running_name=running_name)
     worker.pipeline(band_name=band_name)
 
-    crop_key = 'd'
+    crop_key = 'e'
     crop = crops[crop_key]
     # Get X and y for class 1
     X1, y1 = pair_X_y(worker.clean_epochs, 1, crop)

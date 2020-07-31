@@ -31,16 +31,17 @@ class CNN_Model(nn.Module):
     #             Conv1d-1             [-1, 272, 141]           3,264
     # ================================================================
 
-    def __init__(self, kernel_weights):
+    def __init__(self, kernel_weights, num_channels=272):
         super(CNN_Model, self).__init__()
         self.kernel_weights = kernel_weights
+        self.num_channels = num_channels
         self.init_layers()
         self.reset_parameters()
 
     def init_layers(self):
         # Init the conv layer, named as L1
         self.L1 = nn.Conv1d(in_channels=1,
-                            out_channels=272,
+                            out_channels=self.num_channels,
                             kernel_size=11,
                             padding=5)
 
@@ -193,7 +194,7 @@ class Button_Effect_Remover():
 
         # Substract button_data from data1
         clean_data1 = data1 - button_data
-        epochs = self.epochs['1']
+        epochs = self.epochs[e1]
         tmin, tmax = epochs.times[0], epochs.times[-1]
         clean_epochs = mne.BaseEpochs(epochs.info,
                                       clean_data1,
