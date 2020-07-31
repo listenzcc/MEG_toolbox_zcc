@@ -135,7 +135,8 @@ class Button_Effect_Remover():
         times = self.epochs.times
 
         # Data of [e1, e2]
-        data12 = self.epochs[[e1, e2]].get_data()
+        epochs12 = self.epochs[[e1, e2]]
+        data12 = epochs12.get_data()
         num_samples, num_channels, num_times = data12.shape
         button_data = data12.copy()
         lags = self._compute_lags(e1=e1, e3=e3)
@@ -182,6 +183,7 @@ class Button_Effect_Remover():
             button_data[sample_idx] = torch2numpy(y).reshape(num_channels,
                                                              num_times)
 
+        timelines = timelines[epochs12.events[:, 2] == 1]
         print(f'Estimated timeline for {len(timelines)} samples')
 
         # Fix -------------------------------------------------------
@@ -194,11 +196,10 @@ class Button_Effect_Remover():
 
         # Substract button_data from data12
         clean_data12 = data12 - button_data
-        epochs = self.epochs[[e1, e2]]
-        tmin, tmax = epochs.times[0], epochs.times[-1]
-        clean_epochs = mne.BaseEpochs(epochs.info,
+        tmin, tmax = epochs12.times[0], epochs12.times[-1]
+        clean_epochs = mne.BaseEpochs(epochs12.info,
                                       clean_data12,
-                                      events=epochs.events,
+                                      events=epochs12.events,
                                       tmin=tmin,
                                       tmax=tmax)
 

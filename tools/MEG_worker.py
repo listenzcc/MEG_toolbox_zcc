@@ -235,8 +235,7 @@ class MEG_Worker():
                 f'Clean epochs are recalled from memory: {self.clean_epochs}')
         except:
             # Remove button effect
-            clean_epochs, paired_lags_timelines = self._remove_button_effect(e1='1',
-                                                                             e3='3')
+            clean_epochs, paired_lags_timelines = self._remove_button_effect()
             self.clean_epochs = clean_epochs
             self.paired_lags_timelines = paired_lags_timelines
 
