@@ -1,6 +1,7 @@
 # %%
 import os
 import mne
+import numpy as np
 
 # %% ----------------------------------
 
@@ -145,7 +146,7 @@ class FileLoader():
         # Load raws
         self.raws = raws
 
-    def load_epochs(self, recompute=True):
+    def load_epochs(self, recompute=False):
         # Load epochs by new creation or recall memory.
         # if [recompute], read raws and create new Epochs,
         # other wise, recall epochs from memory.
@@ -158,12 +159,15 @@ class FileLoader():
             self.load_raws(bandpass=(self.parameters['l_freq'],
                                      self.parameters['h_freq']))
 
+            concatenate_raws = mne.concatenate_raws(self.raws)
+
             # Create new Epochs
             epochs_list = []
             for j, raw in enumerate(self.raws):
                 # Get events
                 events = mne.find_events(raw,
                                          stim_channel=self.parameters['stim_channel'])
+
                 sfreq = raw.info['sfreq']
                 events = relabel(events, sfreq)
 
@@ -175,6 +179,7 @@ class FileLoader():
                                     tmax=self.parameters['tmax'],
                                     decim=self.parameters['decim'],
                                     detrend=self.parameters['detrend'],
+                                    reject=self.parameters['reject'],
                                     baseline=None)
 
                 # Record Epochs
@@ -184,7 +189,7 @@ class FileLoader():
 
                 # Solid Epochs
                 path = os.path.join(self.memory_dir, f'Session_{j}-epo.fif')
-                epochs.save(path)
+                # epochs.save(path)
                 print(f'New epochs is saved: {path}')
 
             # Load Epochs into [self.epochs_list]
@@ -197,3 +202,38 @@ class FileLoader():
                                 find_files(self.memory_dir, '-epo.fif')]
             n = len(self.epochs_list)
             print(f'Recalled {n} epochs')
+
+        def reject_epochs(threshold=1e-12):
+            for epochs in self.epochs_list:
+                d = epochs.get_data()
+                drops = []
+                for j, e in enumerate(epochs.events):
+                    _max = np.max(d[j])
+                    # _min = np.min(d[j])
+                    if _max > threshold:
+                        drops.append(j)
+
+                epochs.drop(drops, reason='Reject big values.')
+
+        reject_epochs()
+
+    def leave_one_session_out(self, includes, excludes):
+        # Perform leave one session out on [self.epochs_list]
+
+        def align_epochs():
+            # Inner method for align epochs [self.epochs_list]
+            dev_head_t = self.epochs_list[0].info['dev_head_t']
+            for epochs in self.epochs_list:
+                epochs.info['dev_head_t'] = dev_head_t
+            pass
+
+        # Align epochs
+        align_epochs()
+
+        # Separate [includes] and [excludes] epochs
+        include_epochs = mne.concatenate_epochs([self.epochs_list[j]
+                                                 for j in includes])
+        exclude_epochs = mne.concatenate_epochs([self.epochs_list[j]
+                                                 for j in excludes])
+
+        return include_epochs, exclude_epochs
