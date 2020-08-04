@@ -1,7 +1,8 @@
 # %%
 import os
 import json
-import scipy
+import numpy as np
+import scipy.stats
 import pandas as pd
 
 # %%
@@ -26,11 +27,25 @@ frame = pd.DataFrame(columns=['ID',
                               'Stat'])
 
 for crop_name in crops_table:
+    if not crop_name == 'e':
+        continue
     print(crop_name)
     crop_range = crops_table[crop_name]
-    for score_name in ['1.0-recall',
-                       '1.0-f1-score',
-                       'accuracy']:
+    candidates = ['1.0-recall',
+                  '1.0-f1-score',
+                  'accuracy']
+
+    score_name = 'balanced-accuracy'
+
+    scores = (np.array(results[crop_name]['1.0-recall']) +
+              np.array(results[crop_name]['1.0-precision'])) / 2
+    results[crop_name][score_name] = scores
+
+    scores = (np.array(results_baseline[crop_name]['1.0-recall']) +
+              np.array(results_baseline[crop_name]['1.0-precision'])) / 2
+    results_baseline[crop_name][score_name] = scores
+
+    for score_name in results[crop_name]:
         scores = results[crop_name][score_name]
         scores_baseline = results_baseline[crop_name][score_name]
 
@@ -48,9 +63,7 @@ for crop_name in crops_table:
                                   Stat=stat,
                                   ), ignore_index=True)
 
-frame.to_html('compare.html')
+# frame.to_html('compare.html')
 frame
-
-# %%
 
 # %%

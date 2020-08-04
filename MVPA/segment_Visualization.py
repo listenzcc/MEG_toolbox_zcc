@@ -159,10 +159,10 @@ for j, crop_name in enumerate(crop_summary):
 fig.tight_layout()
 DRAWER.fig = fig
 
-with open(RESULTS_NAME, 'w') as f:
-    json.dump(crop_summary, f)
+# with open(RESULTS_NAME, 'w') as f:
+# json.dump(crop_summary, f)
 
 # %%
-DRAWER.save('segment.pdf')
+# DRAWER.save('segment.pdf')
 
 # %%

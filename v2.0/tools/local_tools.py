@@ -103,7 +103,7 @@ class Configure():
 
 
 class FileLoader():
-    def __init__(self, subject, parameters, config=Configure()):
+    def __init__(self, subject, parameters=None, config=Configure()):
         self.config = config
         raw_dir = self.config.get('RAW_DIR')
         memory_dir = self.config.get('MEMORY_DIR')
@@ -197,13 +197,17 @@ class FileLoader():
             n = len(self.epochs_list)
             print(f'Created {n} epochs from raws')
 
+        # Recall the epochs
         if not recompute:
             self.epochs_list = [mne.read_epochs(path) for path in
                                 find_files(self.memory_dir, '-epo.fif')]
             n = len(self.epochs_list)
             print(f'Recalled {n} epochs')
 
-        def reject_epochs(threshold=1e-12):
+        # Reject the epochs that is too short
+        self.epochs_list = [e for e in self.epochs_list if len(e.events) > 300]
+
+        def reject_bads(threshold=1e-12):
             for epochs in self.epochs_list:
                 d = epochs.get_data()
                 drops = []
@@ -215,7 +219,7 @@ class FileLoader():
 
                 epochs.drop(drops, reason='Reject big values.')
 
-        reject_epochs()
+        reject_bads()
 
     def leave_one_session_out(self, includes, excludes):
         # Perform leave one session out on [self.epochs_list]
@@ -237,3 +241,27 @@ class FileLoader():
                                                  for j in excludes])
 
         return include_epochs, exclude_epochs
+
+# %%
+
+
+class Enhancer():
+    def __init__(self, train_epochs, test_epochs,
+                 n_components=6):
+        self.train_epochs = train_epochs
+        self.test_epochs = test_epochs
+        self.xdawn = mne.preprocessing.Xdawn(n_components=n_components)
+
+    def fit(self):
+        self.xdawn.fit(self.train_epochs)
+
+    def apply(self, target_event_id):
+        enhanced_train_epochs = self.xdawn.apply(self.train_epochs)
+        enhanced_test_epochs = self.xdawn.apply(self.test_epochs)
+
+        return (enhanced_train_epochs[target_event_id],
+                enhanced_test_epochs[target_event_id])
+
+    def fit_apply(self, target_event_id='1'):
+        self.fit()
+        return self.apply(target_event_id)
