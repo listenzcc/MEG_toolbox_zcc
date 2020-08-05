@@ -66,10 +66,10 @@ def mvpa(name):
             epochs.apply_baseline(BASELINE)
             return epochs.crop(CROP[0], CROP[1])
 
-        print('Xdawn --------------------------------')
-        enhancer = Enhancer(train_epochs=train_epochs,
-                            test_epochs=test_epochs)
-        train_epochs, test_epochs = enhancer.fit_apply()
+        # print('Xdawn --------------------------------')
+        # enhancer = Enhancer(train_epochs=train_epochs,
+        #                     test_epochs=test_epochs)
+        # train_epochs, test_epochs = enhancer.fit_apply()
 
         # Prepare epochs
         train_epochs = prepare_epochs(train_epochs)
