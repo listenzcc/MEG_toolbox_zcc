@@ -364,7 +364,7 @@ class CNN_Model(nn.Module):
         print(f'        Loss: {loss0:0.2e} -> {loss1:0.2e}, {loss0 / loss1}')
 
         # Return optimized [x] and its [y]
-        return torch2numpy(x), torch2numpy(y)
+        return torch2numpy(x), torch2numpy(y), loss0 / loss1
 
 
 class Denoiser():
@@ -374,15 +374,16 @@ class Denoiser():
     def fit(self, noise_epochs):
         self.noise_epochs = noise_epochs
 
-    def transform(self, epochs):
+    def transform(self, epochs, labels=[1, 2], allowed_r_min=0):
         # Get data from [self.epochs]
         data = epochs.get_data()
+        events = epochs.events
         num_samples, num_channels, num_times = data.shape
 
         # Get 11 time points around 0 seconds in noise_epochs
         noise_evoked = self.noise_epochs.average()
         idx = np.where(noise_evoked.times == 0)[0][0]
-        _data = noise_evoked.data[:, idx:idx+10]
+        _data = noise_evoked.data[:, idx:idx+11]
 
         # Init cnn
         weights = _data[:, np.newaxis, :]
@@ -392,12 +393,20 @@ class Denoiser():
         # De-noise
         xs = []
         for sample in range(num_samples):
-            print(f'   {sample} | {num_samples}')
+            if not events[sample][2] in labels:
+                print(f'    {sample} | {num_samples}, Pass')
+                continue
+
+            print(f'    {sample} | {num_samples}')
             y_true = data[sample][np.newaxis, :, :]
             x = np.zeros((1, 1, num_times))
 
-            x, y_estimate = cnn.fit(x=x, y_true=y_true,
-                                    learning_rate=learning_rate)
+            x, y_estimate, r = cnn.fit(x=x, y_true=y_true,
+                                       learning_rate=learning_rate)
+
+            if r < allowed_r_min:
+                print(f'    r is too small, {r}')
+                continue
 
             data[sample] -= y_estimate.reshape(num_channels, num_times)
             xs.append(x)

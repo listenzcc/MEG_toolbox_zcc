@@ -69,7 +69,7 @@ def mvpa(name):
 
         # Xdawn enhance
         print('Xdawn --------------------------------')
-        print('Doing nothing')
+        # print('Doing nothing')
         enhancer = Enhancer(train_epochs=train_epochs,
                             test_epochs=test_epochs)
         train_epochs, test_epochs = enhancer.fit_apply()
@@ -78,25 +78,24 @@ def mvpa(name):
         print('Denoise ------------------------------')
 
         # 3
+        denoiser = Denoiser()
         noise_epochs = train_epochs['3'].copy()
         noise_epochs.apply_baseline(BASELINE)
-        denoiser = Denoiser()
         denoiser.fit(noise_epochs=noise_epochs)
-        train_epochs, _ = denoiser.transform(train_epochs[EVENTS].copy())
-        test_epochs, _ = denoiser.transform(test_epochs[EVENTS].copy())
+        train_epochs, _ = denoiser.transform(train_epochs[EVENTS].copy(),
+                                             labels=[1])
 
-        # 2
-        noise_epochs = train_epochs['2'].copy()
+        noise_epochs = test_epochs['3'].copy()
         noise_epochs.apply_baseline(BASELINE)
-        denoiser = Denoiser()
         denoiser.fit(noise_epochs=noise_epochs)
-        train_epochs, _ = denoiser.transform(train_epochs.copy())
-        test_epochs, _ = denoiser.transform(test_epochs.copy())
+        test_epochs, _ = denoiser.transform(test_epochs[EVENTS].copy(),
+                                            labels=[1, 2],
+                                            allowed_r_min=1.3)
 
-        for e in ['1', '2']:
-            print(e)
-            train_epochs[e].average().plot_joint()
-        stophere
+        # for e in ['1', '2']:
+        #     print(e)
+        #     train_epochs[e].average().plot_joint()
+        # stophere
 
         # Prepare epochs
         print('Prepare ------------------------------')
@@ -135,8 +134,8 @@ def mvpa(name):
 
 for idx in range(1, 11):
     name = f'MEG_S{idx:02d}'
-    # process = multiprocessing.Process(target=mvpa, args=(name,))
-    # process.start()
-    mvpa(name)
+    process = multiprocessing.Process(target=mvpa, args=(name,))
+    process.start()
+    # mvpa(name)
 
 # %%
