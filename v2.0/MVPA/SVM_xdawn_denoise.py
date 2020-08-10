@@ -81,16 +81,20 @@ def mvpa(name):
         denoiser = Denoiser()
         noise_epochs = train_epochs['3'].copy()
         noise_epochs.apply_baseline(BASELINE)
-        denoiser.fit(noise_epochs=noise_epochs)
-        train_epochs, _ = denoiser.transform(train_epochs[EVENTS].copy(),
-                                             labels=[1])
+        noise_evoked = noise_epochs.average()
 
-        noise_epochs = test_epochs['3'].copy()
-        noise_epochs.apply_baseline(BASELINE)
-        denoiser.fit(noise_epochs=noise_epochs)
+        denoiser.fit(noise_evoked=noise_evoked,
+                     noise_events=noise_epochs.events)
+
+        train_epochs, _ = denoiser.transform(train_epochs[EVENTS].copy(),
+                                             labels=[1, 2],
+                                             force_near=False)
+
+        denoiser.fit(noise_evoked=noise_evoked,
+                     noise_events=test_epochs['3'].events)
         test_epochs, _ = denoiser.transform(test_epochs[EVENTS].copy(),
                                             labels=[1, 2],
-                                            allowed_r_min=1.3)
+                                            force_near=False)
 
         # for e in ['1', '2']:
         #     print(e)
@@ -134,8 +138,8 @@ def mvpa(name):
 
 for idx in range(1, 11):
     name = f'MEG_S{idx:02d}'
-    process = multiprocessing.Process(target=mvpa, args=(name,))
-    process.start()
-    # mvpa(name)
+    # process = multiprocessing.Process(target=mvpa, args=(name,))
+    # process.start()
+    mvpa(name)
 
 # %%
