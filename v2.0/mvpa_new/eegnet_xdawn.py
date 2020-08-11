@@ -70,9 +70,11 @@ class EEGNet_classifier():
             self.scheduler.step()
 
             if not quiet:
-                print(f'Epoch {epoch}: {running_loss}')
+                # print(f'Epoch {epoch}: {running_loss}')
                 if epoch % 10 == 0:
                     print(f'Epoch {epoch}: {running_loss}')
+
+        print(f'Epoch {epoch}: {running_loss}')
 
     def predict(self, X):
         inputs = torch.from_numpy(X)
@@ -82,7 +84,7 @@ class EEGNet_classifier():
 # %%
 
 
-results_dir = os.path.join('.', 'EEGnet_xdawn')
+results_dir = os.path.join('.', 'EEGnet_xdawn_1')
 try:
     os.mkdir(results_dir)
 except:
@@ -175,212 +177,247 @@ def mvpa(name):
         train_epochs, test_epochs = enhancer.fit_apply()
 
         # Prepare epochs
+        print('Prepare epochs -----------------------')
         train_epochs = prepare_epochs(train_epochs)
         test_epochs = prepare_epochs(test_epochs)
+        print(train_epochs, test_epochs)
+        # import pdb  # noqa
+        # pdb.set_trace()  # noqa
 
+        # Prepare X and y
+        print('Getting data -------------------------', flush=True)
         X_train, y_train = get_X_y(train_epochs)
         X_test, y_test = get_X_y(test_epochs)
+        m = np.max(abs(X_train))
+        print(m)
+        X_train = X_train / m
+        X_test = X_test / m
 
-        print('Preprocess ---------------------------')
-        pipeline = make_pipeline(Vectorizer(), StandardScaler())
-        X_train = pipeline.fit(X_train)
-        X_test = pipeline.fit(X_test)
-        y_train[not y_train == 1] = 0
-        y_test[not y_test == 1] = 0
+        # Train 12
+        print('Training 12 --------------------------')
+        _X_train = X_train.transpose([0, 2, 1])[:, np.newaxis]
+        _X_train = _X_train[y_train != 4]
+        _y_train = y_train[y_train != 4]
+        _y_train[_y_train != 1] = 0
 
-        print('Training -----------------------------')
-        eegnet = EEGNet_classifier()
-        eegnet.fit(X_train, y_train, quiet=False)
-        y_pred = eegnet.predict(X_test)
-        # y_pred = y_test
+        eegnet12 = EEGNet_classifier()
+        eegnet12.fit(_X_train, _y_train, quiet=False)
 
-        print('Testing ------------------------------')
-        predicts.append(dict(y_test=y_test,
-                             y_pred=y_pred))
+        # Train 14
+        print('Training 14 --------------------------')
+        _X_train = X_train.transpose([0, 2, 1])[:, np.newaxis]
+        _X_train = _X_train[y_train != 2]
+        _y_train = y_train[y_train != 2]
+        _y_train[_y_train != 1] = 0
+
+        eegnet14 = EEGNet_classifier()
+        eegnet14.fit(_X_train, _y_train, quiet=False)
+
+        # Train 124
+        print('Training 124 -------------------------')
+        _X_train = X_train.transpose([0, 2, 1])[:, np.newaxis]
+        _y_train = y_train.copy()
+        _y_train[_y_train != 1] = 0
+
+        eegnet124 = EEGNet_classifier()
+        eegnet124.fit(_X_train, _y_train, quiet=False)
+
+        # Predict
+        print('Predicting ---------------------------')
+        _X_test = X_test.transpose([0, 2, 1])[:, np.newaxis]
+
+        y_pred12 = eegnet12.predict(_X_test).detach().cpu().numpy()
+        y_pred14 = eegnet14.predict(_X_test).detach().cpu().numpy()
+        y_pred124 = eegnet124.predict(_X_test).detach().cpu().numpy()
+
+        # Save
+        print('Saving -------------------------------')
+        predicts.append(dict(y_true=y_test,
+                             events=test_epochs.events.copy(),
+                             y_pred12=y_pred12,
+                             y_pred14=y_pred14,
+                             y_pred124=y_pred124))
 
     with open(os.path.join(results_dir,
                            f'{name}.json'), 'wb') as f:
         pickle.dump(predicts, f)
 
-        pass
-
 
 # %%
-
 for idx in range(1, 11):
     name = f'MEG_S{idx:02d}'
-    # mvpa(name)
+    mvpa(name)
     # p = multiprocessing.Process(target=mvpa, args=(name,))
     # p.start()
 
 
-# %%
-idx = 3
-name = f'MEG_S{idx:02d}'
-# Perform MVPA
-# Load epochs
-loader = FileLoader(name)
-loader.load_epochs(recompute=False)
-print(loader.epochs_list)
+# # %%
+# idx = 3
+# name = f'MEG_S{idx:02d}'
+# # Perform MVPA
+# # Load epochs
+# loader = FileLoader(name)
+# loader.load_epochs(recompute=False)
+# print(loader.epochs_list)
 
-exclude = 2
-# Start on separate training and testing dataset
-includes = [e for e in range(
-    len(loader.epochs_list)) if not e == exclude]
-excludes = [exclude]
-train_epochs, test_epochs = loader.leave_one_session_out(includes,
-                                                         excludes)
-print(train_epochs, test_epochs)
+# exclude = 2
+# # Start on separate training and testing dataset
+# includes = [e for e in range(
+#     len(loader.epochs_list)) if not e == exclude]
+# excludes = [exclude]
+# train_epochs, test_epochs = loader.leave_one_session_out(includes,
+#                                                          excludes)
+# print(train_epochs, test_epochs)
 
-print('Xdawn --------------------------------')
-enhancer = Enhancer(train_epochs=train_epochs,
-                    test_epochs=test_epochs)
-train_epochs, test_epochs = enhancer.fit_apply()
+# print('Xdawn --------------------------------')
+# enhancer = Enhancer(train_epochs=train_epochs,
+#                     test_epochs=test_epochs)
+# train_epochs, test_epochs = enhancer.fit_apply()
 
-# Prepare epochs
-train_epochs = prepare_epochs(train_epochs)
-test_epochs = prepare_epochs(test_epochs)
-
-
-# %%
-X_train, y_train = get_X_y(train_epochs)
-X_test, y_test = get_X_y(test_epochs)
-m = np.max(abs(X_train))
-display(m)
-X_train = X_train / m
-X_test = X_test / m
-
-# %%
-print('Training -----------------------------')
-_X_train = X_train.transpose([0, 2, 1])[:, np.newaxis]
-_X_train = _X_train[y_train != 4]
-_y_train = y_train[y_train != 4]
-_y_train[_y_train != 1] = 0
-
-eegnet12 = EEGNet_classifier()
-eegnet12.fit(_X_train, _y_train, quiet=False)
-
-# %%
-print('Training -----------------------------')
-_X_train = X_train.transpose([0, 2, 1])[:, np.newaxis]
-_X_train = _X_train[y_train != 2]
-_y_train = y_train[y_train != 2]
-_y_train[_y_train != 1] = 0
-
-eegnet14 = EEGNet_classifier()
-eegnet14.fit(_X_train, _y_train, quiet=False)
-
-# %%
-print('Training -----------------------------')
-_X_train = X_train.transpose([0, 2, 1])[:, np.newaxis]
-_y_train = y_train.copy()
-_y_train[_y_train != 1] = 0
-
-eegnet124 = EEGNet_classifier()
-eegnet124.fit(_X_train, _y_train, quiet=False)
-
-# %%
-_X_test = X_test.transpose([0, 2, 1])[:, np.newaxis]
-y_pred12 = eegnet12.predict(_X_test).detach().cpu().numpy()
-y_pred14 = eegnet14.predict(_X_test).detach().cpu().numpy()
-y_pred124 = eegnet124.predict(_X_test).detach().cpu().numpy()
-y_pred_mix = (y_pred12 + y_pred14 + y_pred124) / 3
-
-y_pred = y_pred_mix.copy()
-events = test_epochs.events.copy()
-for j, es in enumerate(events):
-    print(j)
-    finds = []
-    for k, e in enumerate(events[max(j-20, 0):min(j+20, len(events))]):
-        d = np.abs(es[0] - e[0])
-        if d < 1200:
-            finds.append(y_pred_mix[j-20+k])
-    if not y_pred_mix[j] == np.max(finds):
-        y_pred[j] = 0
+# # Prepare epochs
+# train_epochs = prepare_epochs(train_epochs)
+# test_epochs = prepare_epochs(test_epochs)
 
 
-# %%
-order = np.argsort(y_test)
-order = range(len(order))
-# order = np.where(y_test == 1)[0]
-fig, ax = plt.subplots(1, 1, figsize=(8, 8))
-ax.plot(y_pred12[order], label='12')
-ax.plot(1+y_pred14[order], label='14')
-ax.plot(2+y_pred124[order], label='124')
-ax.plot(3+y_pred_mix[order], label='mix')
-ax.plot(-y_test[order], label='y')
-ax.plot(-y_pred[order])
-ax.legend()
+# # %%
+# X_train, y_train = get_X_y(train_epochs)
+# X_test, y_test = get_X_y(test_epochs)
+# m = np.max(abs(X_train))
+# display(m)
+# X_train = X_train / m
+# X_test = X_test / m
 
-y_true = y_test.copy()
-y_true[y_true != 1] = 0
+# # %%
+# print('Training -----------------------------')
+# _X_train = X_train.transpose([0, 2, 1])[:, np.newaxis]
+# _X_train = _X_train[y_train != 4]
+# _y_train = y_train[y_train != 4]
+# _y_train[_y_train != 1] = 0
 
-print('12')
-print(sklearn.metrics.classification_report(y_pred=y_pred12 > 0.5,
-                                            y_true=y_true))
+# eegnet12 = EEGNet_classifier()
+# eegnet12.fit(_X_train, _y_train, quiet=False)
 
-print('14')
-print(sklearn.metrics.classification_report(y_pred=y_pred14 > 0.5,
-                                            y_true=y_true))
+# # %%
+# print('Training -----------------------------')
+# _X_train = X_train.transpose([0, 2, 1])[:, np.newaxis]
+# _X_train = _X_train[y_train != 2]
+# _y_train = y_train[y_train != 2]
+# _y_train[_y_train != 1] = 0
 
-print('124')
-print(sklearn.metrics.classification_report(y_pred=y_pred124 > 0.5,
-                                            y_true=y_true))
+# eegnet14 = EEGNet_classifier()
+# eegnet14.fit(_X_train, _y_train, quiet=False)
 
-print('mix')
-print(sklearn.metrics.classification_report(y_pred=y_pred_mix > 0.5,
-                                            y_true=y_true))
+# # %%
+# print('Training -----------------------------')
+# _X_train = X_train.transpose([0, 2, 1])[:, np.newaxis]
+# _y_train = y_train.copy()
+# _y_train[_y_train != 1] = 0
 
-print('pred')
-print(sklearn.metrics.classification_report(y_pred=y_pred > 0.5,
-                                            y_true=y_true))
+# eegnet124 = EEGNet_classifier()
+# eegnet124.fit(_X_train, _y_train, quiet=False)
+
+# # %%
+# _X_test = X_test.transpose([0, 2, 1])[:, np.newaxis]
+# y_pred12 = eegnet12.predict(_X_test).detach().cpu().numpy()
+# y_pred14 = eegnet14.predict(_X_test).detach().cpu().numpy()
+# y_pred124 = eegnet124.predict(_X_test).detach().cpu().numpy()
+# y_pred_mix = (y_pred12 + y_pred14 + y_pred124) / 3
+
+# y_pred = y_pred_mix.copy()
+# events = test_epochs.events.copy()
+# for j, es in enumerate(events):
+#     print(j)
+#     finds = []
+#     for k, e in enumerate(events[max(j-20, 0):min(j+20, len(events))]):
+#         d = np.abs(es[0] - e[0])
+#         if d < 1200:
+#             finds.append(y_pred_mix[j-20+k])
+#     if not y_pred_mix[j] == np.max(finds):
+#         y_pred[j] = 0
 
 
-# %%
+# # %%
+# order = np.argsort(y_test)
+# order = range(len(order))
+# # order = np.where(y_test == 1)[0]
+# fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+# ax.plot(y_pred12[order], label='12')
+# ax.plot(1+y_pred14[order], label='14')
+# ax.plot(2+y_pred124[order], label='124')
+# ax.plot(3+y_pred_mix[order], label='mix')
+# ax.plot(-y_test[order], label='y')
+# ax.plot(-y_pred[order])
+# ax.legend()
 
-TP, TN, FP, FN = 0, 0, 0, 0
-for j, _y in enumerate(y_test):
-    p12 = y_pred12[j] > 0.5
-    p14 = y_pred14[j] > 0.5
-    p124 = y_pred124[j] > 0.5
+# y_true = y_test.copy()
+# y_true[y_true != 1] = 0
 
-    if _y == 1:
-        if any([p12, p14, p124]):
-            TP += 1
-        else:
-            FN += 1
-    else:
-        if not all([p12, p14, p124]):
-            TN += 1
-        else:
-            FP += 1
+# print('12')
+# print(sklearn.metrics.classification_report(y_pred=y_pred12 > 0.5,
+#                                             y_true=y_true))
 
-print('--------------------------------------------')
-print(f'TP: {TP}, TN: {TN}, FP: {FP}, FN: {FN}')
+# print('14')
+# print(sklearn.metrics.classification_report(y_pred=y_pred14 > 0.5,
+#                                             y_true=y_true))
 
-print('Recall:', TP / (TP + FN))
-print('Precision:', TP / (TP + FP))
+# print('124')
+# print(sklearn.metrics.classification_report(y_pred=y_pred124 > 0.5,
+#                                             y_true=y_true))
 
-# %%
-finds_1 = np.where(y_test == 1)
-# finds_2 = np.where(y_test == 2)
-finds_4 = np.where(y_test == 4)
-finds = np.concatenate([
-    finds_1[0],
-    # finds_2[0],
-    finds_4[0],
-])
+# print('mix')
+# print(sklearn.metrics.classification_report(y_pred=y_pred_mix > 0.5,
+#                                             y_true=y_true))
 
-fig, ax = plt.subplots(1, 1)
-ax.plot(-y_pred[finds])
-ax.plot(_y_test[finds])
+# print('pred')
+# print(sklearn.metrics.classification_report(y_pred=y_pred > 0.5,
+#                                             y_true=y_true))
 
-report = sklearn.metrics.classification_report(y_pred=y_pred[finds] > 0.5,
-                                               y_true=_y_test[finds],
-                                               output_dict=True)
-display(report)
 
-# %%
-sklearn.metrics.roc_auc_score(_y_test, y_pred)
+# # %%
 
-# %%
+# TP, TN, FP, FN = 0, 0, 0, 0
+# for j, _y in enumerate(y_test):
+#     p12 = y_pred12[j] > 0.5
+#     p14 = y_pred14[j] > 0.5
+#     p124 = y_pred124[j] > 0.5
+
+#     if _y == 1:
+#         if any([p12, p14, p124]):
+#             TP += 1
+#         else:
+#             FN += 1
+#     else:
+#         if not all([p12, p14, p124]):
+#             TN += 1
+#         else:
+#             FP += 1
+
+# print('--------------------------------------------')
+# print(f'TP: {TP}, TN: {TN}, FP: {FP}, FN: {FN}')
+
+# print('Recall:', TP / (TP + FN))
+# print('Precision:', TP / (TP + FP))
+
+# # %%
+# finds_1 = np.where(y_test == 1)
+# # finds_2 = np.where(y_test == 2)
+# finds_4 = np.where(y_test == 4)
+# finds = np.concatenate([
+#     finds_1[0],
+#     # finds_2[0],
+#     finds_4[0],
+# ])
+
+# fig, ax = plt.subplots(1, 1)
+# ax.plot(-y_pred[finds])
+# ax.plot(_y_test[finds])
+
+# report = sklearn.metrics.classification_report(y_pred=y_pred[finds] > 0.5,
+#                                                y_true=_y_test[finds],
+#                                                output_dict=True)
+# display(report)
+
+# # %%
+# sklearn.metrics.roc_auc_score(_y_test, y_pred)
+
+# # %%
