@@ -129,6 +129,7 @@ for idx in range(1, 11):
         # TSNE
         print('TSNE ---------------------------------')
         tsne = manifold.TSNE(n_components=2)
+        # x6 = np.concatenate([train_x, test_x], axis=0)
         x2 = tsne.fit_transform(np.concatenate([train_x, test_x], axis=0))
 
         # Save
