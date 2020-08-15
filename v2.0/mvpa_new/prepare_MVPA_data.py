@@ -14,13 +14,13 @@ import matplotlib.pyplot as plt
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))  # noqa
 import deploy
-from local_tools import FileLoader, Enhancer
+from local_tools import FileLoader, Enhancer, Denoiser
 
 
 # %%
 
 
-results_dir = os.path.join('.', 'MVPA_data_xdawn_v2')
+results_dir = os.path.join('.', 'MVPA_data_xdawn_v3')
 try:
     os.mkdir(results_dir)
 except:
@@ -40,6 +40,8 @@ def prepare(name):
     # Cross validation
     num_epochs = len(loader.epochs_list)
     for exclude in range(num_epochs):
+        data_name = f'{name}-{exclude}.pkl'
+
         # Start on separate training and testing dataset
         print(f'---- {name}: {exclude} | {num_epochs} ----------------------')
         includes = [e for e in range(
@@ -48,58 +50,80 @@ def prepare(name):
         train_epochs, test_epochs = loader.leave_one_session_out(includes,
                                                                  excludes)
 
-        train_epochs = train_epochs[['1', '2', '4']]
-        test_epochs = test_epochs[['1', '2', '4']]
+        # Raw events
+        raw_train_events = train_epochs.events.copy()
+        raw_test_events = test_epochs.events.copy()
+        tmpdata = dict(raw_train_events=raw_train_events,
+                       raw_test_events=raw_test_events)
+        with open(os.path.join(results_dir, f'raw_events_{data_name}'), 'wb') as f:
+            pickle.dump(tmpdata, f)
+            print(f'Saved in {f.name}')
 
         train_events = train_epochs.events.copy()
         test_events = test_epochs.events.copy()
 
         # Xdawn
         print('Xdawn 1 ------------------------------')
-        enhancer1 = Enhancer(train_epochs=train_epochs,
-                             test_epochs=test_epochs)
-        train_epochs, test_epochs = enhancer1.fit_apply()
+        enhancer = Enhancer(train_epochs=train_epochs,
+                            test_epochs=test_epochs,
+                            n_components=6)
+        train_epochs, test_epochs = enhancer.fit_apply()
+
+        denoiser = Denoiser()
+        denoiser.fit(noise_evoked=train_epochs['3'].average(),
+                     noise_events=train_epochs['3'].events.copy())
+        train_epochs, xs = denoiser.transform(train_epochs)
+        test_epochs, xs = denoiser.transform(test_epochs)
+        # train_epochs = train_epochs[['1', '2', '4']]
+        # test_epochs = test_epochs[['1', '2', '4']]
 
         # Relabel
-        print('Relabel -----------------------------')
-        selects = []
-        for j, event in enumerate(train_events):
-            if event[2] == 1:
-                for k in [-2, -1, 0, 1, 2]:
-                    selects.append(j + k)
+        # print('Relabel -----------------------------')
+        # selects = []
+        # for j, event in enumerate(train_events):
+        #     if event[2] == 1:
+        #         for k in [-1, 0, 1]:
+        #             selects.append(j + k)
 
-        # new_epochs = train_epochs.copy()
-        # new_epochs.event_id = {'1': 1, '4': 4}
-        # new_epochs.events = train_epochs.events[selects]
-        train_epochs.load_data()
-        new_epochs = mne.BaseEpochs(train_epochs.info,
-                                    train_epochs.get_data()[selects],
-                                    events=train_epochs.events[selects],
-                                    tmin=train_epochs.times[0],
-                                    tmax=train_epochs.times[-1],
-                                    baseline=None)
+        #     try:
+        #         if all([event[2] == 4,
+        #                 train_events[j+1] == 2]):
+        #             for k in [-1, 0, 1]:
+        #                 selects.append(j + k)
+        #     except:
+        #         pass
+
+        #     try:
+        #         if all([event[2] == 4,
+        #                 train_events[j-1] == 2]):
+        #             for k in [-1, 0, 1]:
+        #                 selects.append(j + k)
+        #     except:
+        #         pass
+
+        # # new_epochs = train_epochs.copy()
+        # # new_epochs.event_id = {'1': 1, '4': 4}
+        # # new_epochs.events = train_epochs.events[selects]
+        # train_epochs.load_data()
+        # new_epochs = mne.BaseEpochs(train_epochs.info,
+        #                             train_epochs.get_data()[selects],
+        #                             events=train_epochs.events[selects],
+        #                             tmin=train_epochs.times[0],
+        #                             tmax=train_epochs.times[-1],
+        #                             baseline=None)
 
         print('Baseline -----------------------------------')
         train_epochs.apply_baseline((None, 0))
         test_epochs.apply_baseline((None, 0))
 
-        print('Xdawn 2 ------------------------------')
-        try:
-            xdawn = mne.preprocessing.Xdawn(n_components=6)
-            xdawn.fit(new_epochs)
-            train_X = xdawn.transform(train_epochs)[:, :6]
-            test_X = xdawn.transform(test_epochs)[:, :6]
-            success = True
-        except:
-            train_X, test_X = enhancer1.transform()
-            train_X = train_X[:, :6]
-            test_X = test_X[:, :6]
-            success = False
-            print('-' * 200)
-            print(f'Xdawn 2 failed on {name}, {exclude}.')
+        # print('Xdawn 2 ------------------------------')
+        # xdawn = mne.preprocessing.Xdawn(n_components=6)
+        # xdawn.fit(new_epochs)
+        # train_X = xdawn.transform(train_epochs)[:, :6]
+        # test_X = xdawn.transform(test_epochs)[:, :6]
 
-        # break
-
+        train_X = train_epochs.get_data()
+        test_X = test_epochs.get_data()
         # Save
         print('Save -------------------------------')
         data_name = f'{name}-{exclude}.pkl'
@@ -108,7 +132,6 @@ def prepare(name):
             train_events=train_events,
             test_X=test_X,
             test_events=test_events,
-            failed=failed
         )
         with open(os.path.join(results_dir, data_name), 'wb') as f:
             pickle.dump(tmpdata, f)
@@ -127,6 +150,7 @@ for idx in range(1, 11):
     # Load epochs
     name = f'MEG_S{idx:02d}'
     print(name)
+    # break
     prepare(name)
     # p = multiprocessing.Process(target=prepare, args=(name,))
     # p.start()
@@ -158,7 +182,8 @@ if False:
         # Xdawn
         print('Xdawn 1 ------------------------------')
         enhancer1 = Enhancer(train_epochs=train_epochs,
-                             test_epochs=test_epochs)
+                             test_epochs=test_epochs,
+                             n_components=20)
         # train_epochs, test_epochs = enhancer1.fit_apply()
 
         # Relabel
@@ -166,8 +191,24 @@ if False:
         selects = []
         for j, event in enumerate(train_events):
             if event[2] == 1:
-                for k in [-2, -1, 0, 1, 2]:
+                for k in [-1, 0, 1]:
                     selects.append(j + k)
+
+            try:
+                if all([event[2] == 4,
+                        train_events[j+1] == 2]):
+                    for k in [-1, 0, 1]:
+                        selects.append(j + k)
+            except:
+                pass
+
+            try:
+                if all([event[2] == 4,
+                        train_events[j-1] == 2]):
+                    for k in [-1, 0, 1]:
+                        selects.append(j + k)
+            except:
+                pass
 
         # new_epochs = train_epochs.copy()
         # new_epochs.event_id = {'1': 1, '4': 4}
@@ -185,36 +226,33 @@ if False:
         test_epochs.apply_baseline((None, 0))
 
         print('Xdawn 2 ------------------------------')
-        try:
-            xdawn = mne.preprocessing.Xdawn(n_components=6)
-            xdawn.fit(new_epochs)
-            train_X = xdawn.transform(train_epochs)[:, :6]
-            test_X = xdawn.transform(test_epochs)[:, :6]
-            success = True
-        except:
-            train_X, test_X = enhancer1.transform()
-            train_X = train_X[:, :6]
-            test_X = test_X[:, :6]
-            success = False
-
-        break
+        xdawn = mne.preprocessing.Xdawn(n_components=6)
+        xdawn.fit(new_epochs)
+        train_X = xdawn.transform(train_epochs)[:, :6]
+        test_X = xdawn.transform(test_epochs)[:, :6]
 
         # Save
         print('Save -------------------------------')
-        data_name = f'{name}-{exclude}.pkl'
         tmpdata = dict(
             train_X=train_X,
             train_events=train_events,
             test_X=test_X,
             test_events=test_events,
-            failed=failed
         )
         with open(os.path.join(results_dir, data_name), 'wb') as f:
             pickle.dump(tmpdata, f)
             print(f'Saved in {f.name}')
 
-    break
-
 
 # %%
+# times = train_epochs.times
+# plt.style.use('ggplot')
+# fig, axes = plt.subplots(3, 2, figsize=(8, 12))
+# for j, e in enumerate([1, 2, 4]):
+#     d = np.mean(train_X[train_events[:, -1] == e], axis=0)
+#     axes[j, 0].plot(times, d.transpose())
+#     d = np.mean(test_X[test_events[:, -1] == e], axis=0)
+#     axes[j, 1].plot(times, d.transpose())
+
+
 # %%
