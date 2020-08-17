@@ -35,14 +35,14 @@ def select_events(epochs):
     # Init ratio of event 2
     n1 = len(epochs['1'])
     n2 = len(epochs['2'])
-    ratio = n1 / n2 * 5
+    ratio = n1 / n2 * 2
 
     # Selection
     selects = []
     for j, event in enumerate(epochs.events):
         # Event 1 and 4
         if event[-1] == 1:
-            [selects.append(j + e) for e in [-3, -2, -1, 0, 1, -2, -3]]
+            [selects.append(j + e) for e in [-2, -1, 0, 1, -2]]
             continue
 
         # Event 2
@@ -52,7 +52,7 @@ def select_events(epochs):
             continue
 
     # Return
-    return np.unique(selects)
+    return selects
 
 
 def get_X_y(epochs):
@@ -67,12 +67,12 @@ def get_X_y(epochs):
 # Files should be in [data_folder]
 # List the unique ids [uids]
 # An uid is like 'MEG_S02-3' refers MEG data, subject 02 and 3 session exclusion
-data_folder = os.path.join('..', 'MVPA_data_xdawn_v3')
+data_folder = os.path.join('..', 'MVPA_data_xdawn_raw_v3')
 uids = sorted(set(e[:9] for e in os.listdir(data_folder)))
 print(uids)
 
 # Prepare results folder
-results_folder = os.path.join('Results')
+results_folder = os.path.join('Results_raw_slide')
 if not os.path.exists(results_folder):
     os.mkdir(results_folder)
 
@@ -115,7 +115,7 @@ for uid in uids:
     # Init
     clf = make_pipeline(Vectorizer(),
                         StandardScaler(),
-                        # pca.PCA(n_components=8),
+                        pca.PCA(n_components=.95),
                         svm.SVC(gamma='scale',
                                 kernel='rbf',
                                 class_weight='balanced',))
