@@ -67,12 +67,12 @@ def get_X_y(epochs):
 # Files should be in [data_folder]
 # List the unique ids [uids]
 # An uid is like 'MEG_S02-3' refers MEG data, subject 02 and 3 session exclusion
-data_folder = os.path.join('..', 'MVPA_data_xdawn_raw_v3')
+data_folder = os.path.join('..', 'MVPA_data_xdawn_v3')
 uids = sorted(set(e[:9] for e in os.listdir(data_folder)))
 print(uids)
 
 # Prepare results folder
-results_folder = os.path.join('Results_raw_slide')
+results_folder = os.path.join('Results_slide')
 if not os.path.exists(results_folder):
     os.mkdir(results_folder)
 

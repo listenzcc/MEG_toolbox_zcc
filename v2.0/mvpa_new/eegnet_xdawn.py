@@ -85,7 +85,7 @@ class EEGNet_classifier():
 # %%
 
 
-results_dir = os.path.join('.', 'EEGnet_xdawn_1')
+results_dir = os.path.join('.', 'EEGnet_xdawn')
 try:
     os.mkdir(results_dir)
 except:
@@ -96,12 +96,13 @@ finally:
 
 def prepare_epochs(epochs,
                    events=['1', '2', '4'],
-                   baseline=(None, 0),
+                   baseline=(0, 0.2),
                    crop=(0.0, 0.8)):
     # A tool for prepare epochs
     epochs = epochs[events]
+    epochs.crop(crop[0], crop[1])
     epochs.apply_baseline(baseline)
-    return epochs.crop(crop[0], crop[1])
+    return epochs
 
 
 def relabel(events, sfreq=1200, T=0.5):
@@ -175,8 +176,7 @@ def mvpa(name):
         print('Xdawn --------------------------------')
         enhancer = Enhancer(train_epochs=train_epochs,
                             test_epochs=test_epochs)
-        # train_epochs, test_epochs = enhancer.fit_apply()
-        train_data, test_data = enhancer.fit_transform()
+        train_epochs, test_epochs = enhancer.fit_apply()
 
         print(train_epochs, test_epochs)
 

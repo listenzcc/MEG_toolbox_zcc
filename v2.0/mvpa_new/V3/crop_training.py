@@ -81,6 +81,10 @@ data_folder = os.path.join('..', 'MVPA_data_xdawn_raw_v3')
 uids = sorted(set(e[:9] for e in os.listdir(data_folder)))
 print(uids)
 
+# split_folder = os.path.join('..', 'MVPA_data_xdawn_split_v3')
+# uids = sorted(set(e[:9] for e in os.listdir(split_folder)))
+# print(uids)
+
 # Prepare results folder
 results_folder = os.path.join('Results_raw_crop')
 if not os.path.exists(results_folder):
@@ -89,12 +93,12 @@ if not os.path.exists(results_folder):
 # %% Main loop ----------------------------------------------
 # For each uid
 for uid in uids:
-    # uid = uids[0]
+    uid = uids[8]
     result_name = f'{uid}-crop.pkl'
     if os.path.exists(os.path.join(results_folder, result_name)):
         print(f'{result_name} exists, doing nothing.')
         pass
-        continue
+        # continue
 
     # Init train and test epochs -----------------------
     train_epochs_name = f'{uid}-train-epo.fif'
@@ -142,6 +146,8 @@ for uid in uids:
     print('Predicting')
     crop_pred_y = clf.predict(X=test_X)
 
+    break
+
     # Save results
     print('Saving')
     results = dict(crop_pred_y=crop_pred_y,
@@ -150,12 +156,11 @@ for uid in uids:
     pickle.dump(results,
                 open(os.path.join(results_folder, result_name), 'wb'))
 
-    # break
 
 # %% Plotting -------------------------------------------------
 # uid = 'MEG_S01-0'
-# print('-')
-# print(metrics.classification_report(y_true=test_y, y_pred=crop_pred_y))
+print('-')
+print(metrics.classification_report(y_true=test_y, y_pred=crop_pred_y))
 
 # plt.style.use('ggplot')
 # fig, ax = plt.subplots(1, 1)

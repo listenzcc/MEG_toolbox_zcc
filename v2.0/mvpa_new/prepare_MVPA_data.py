@@ -21,6 +21,7 @@ from local_tools import FileLoader, Enhancer, Denoiser
 
 
 results_dir = os.path.join('.', 'MVPA_data_xdawn_v3')
+results_dir = os.path.join('.', 'MVPA_data_xdawn_raw_v3')
 try:
     os.mkdir(results_dir)
 except:
@@ -51,16 +52,16 @@ def prepare(name):
                                                                  excludes)
 
         # Raw events
-        raw_train_events = train_epochs.events.copy()
-        raw_test_events = test_epochs.events.copy()
-        tmpdata = dict(raw_train_events=raw_train_events,
-                       raw_test_events=raw_test_events)
-        with open(os.path.join(results_dir, f'raw_events_{data_name}'), 'wb') as f:
-            pickle.dump(tmpdata, f)
-            print(f'Saved in {f.name}')
+        # raw_train_events = train_epochs.events.copy()
+        # raw_test_events = test_epochs.events.copy()
+        # tmpdata = dict(raw_train_events=raw_train_events,
+        #                raw_test_events=raw_test_events)
+        # with open(os.path.join(results_dir, f'raw_events_{data_name}'), 'wb') as f:
+        #     pickle.dump(tmpdata, f)
+        #     print(f'Saved in {f.name}')
 
-        train_events = train_epochs.events.copy()
-        test_events = test_epochs.events.copy()
+        # train_events = train_epochs.events.copy()
+        # test_events = test_epochs.events.copy()
 
         # Xdawn
         print('Xdawn 1 ------------------------------')
@@ -69,11 +70,14 @@ def prepare(name):
                             n_components=6)
         train_epochs, test_epochs = enhancer.fit_apply()
 
+        # Denoise
+        print('Denoise ------------------------------')
         denoiser = Denoiser()
-        denoiser.fit(noise_evoked=train_epochs['3'].average(),
-                     noise_events=train_epochs['3'].events.copy())
+        denoiser.fit(noise_evoked=test_epochs['3'].average(),
+                     noise_events=test_epochs['3'].events.copy())
         train_epochs, xs = denoiser.transform(train_epochs)
         test_epochs, xs = denoiser.transform(test_epochs)
+
         # train_epochs = train_epochs[['1', '2', '4']]
         # test_epochs = test_epochs[['1', '2', '4']]
 
@@ -112,9 +116,19 @@ def prepare(name):
         #                             tmax=train_epochs.times[-1],
         #                             baseline=None)
 
-        print('Baseline -----------------------------------')
-        train_epochs.apply_baseline((None, 0))
-        test_epochs.apply_baseline((None, 0))
+        # print('Baseline -----------------------------------')
+        # train_epochs.apply_baseline((None, 0))
+        # test_epochs.apply_baseline((None, 0))
+
+        print('Save -------------------------------')
+        train_name = f'{name}-{exclude}-train-epo.fif'
+        test_name = f'{name}-{exclude}-test-epo.fif'
+        train_epochs.save(os.path.join(results_dir, train_name),
+                          overwrite=True)
+        print(f'Saved in {train_name}')
+        test_epochs.save(os.path.join(results_dir, test_name),
+                         overwrite=True)
+        print(f'Saved in {test_name}')
 
         # print('Xdawn 2 ------------------------------')
         # xdawn = mne.preprocessing.Xdawn(n_components=6)
@@ -122,20 +136,20 @@ def prepare(name):
         # train_X = xdawn.transform(train_epochs)[:, :6]
         # test_X = xdawn.transform(test_epochs)[:, :6]
 
-        train_X = train_epochs.get_data()
-        test_X = test_epochs.get_data()
+        # train_X = train_epochs.get_data()
+        # test_X = test_epochs.get_data()
         # Save
-        print('Save -------------------------------')
-        data_name = f'{name}-{exclude}.pkl'
-        tmpdata = dict(
-            train_X=train_X,
-            train_events=train_events,
-            test_X=test_X,
-            test_events=test_events,
-        )
-        with open(os.path.join(results_dir, data_name), 'wb') as f:
-            pickle.dump(tmpdata, f)
-            print(f'Saved in {f.name}')
+        # print('Save -------------------------------')
+        # data_name = f'{name}-{exclude}.pkl'
+        # tmpdata = dict(
+        #     train_X=train_X,
+        #     train_events=train_events,
+        #     test_X=test_X,
+        #     test_events=test_events,
+        # )
+        # with open(os.path.join(results_dir, data_name), 'wb') as f:
+        #     pickle.dump(tmpdata, f)
+        #     print(f'Saved in {f.name}')
 
     # break
 
@@ -146,14 +160,14 @@ def prepare(name):
 
 
 # %%
-for idx in range(1, 11):
+for idx in range(1, 8):
     # Load epochs
     name = f'MEG_S{idx:02d}'
     print(name)
     # break
-    prepare(name)
-    # p = multiprocessing.Process(target=prepare, args=(name,))
-    # p.start()
+    # prepare(name)
+    p = multiprocessing.Process(target=prepare, args=(name,))
+    p.start()
 
 # %%
 if False:
@@ -240,7 +254,7 @@ if False:
             test_events=test_events,
         )
         with open(os.path.join(results_dir, data_name), 'wb') as f:
-            pickle.dump(tmpdata, f)
+            pickle.dump(tmpdata, f, protocol=4)
             print(f'Saved in {f.name}')
 
 

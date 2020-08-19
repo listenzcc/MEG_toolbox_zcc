@@ -58,8 +58,7 @@ for folder in ['SVM_baseline',
                'SVM_xdawn',
                'SVM_denoise',
                'SVM_xdawn_denoise',
-               'SVM_xdawn_denoise_1',
-               'SVM_xdawn_denoise_2']:
+               'SVM_xdawn_denoise_1']:
     results_dir = os.path.join('.', folder)
 
     for name in os.listdir(results_dir):
@@ -88,27 +87,27 @@ for method in main_table['Method'].unique():
 
 
 # %%
-main_table
+# main_table
 
 # %%
-anova_tables = dict()
-for column in main_table.columns:  # ['1-recall', '1-f1-score', 'accuracy']:
-    if column in ['Name', 'Method']:
-        continue
-    print(column)
+# anova_tables = dict()
+# for column in main_table.columns:  # ['1-recall', '1-f1-score', 'accuracy']:
+#     if column in ['Name', 'Method']:
+#         continue
+#     print(column)
 
-    table = main_table[['Name', 'Method', column]]
-    table.columns = ['Name', 'Method', 'Value']
+#     table = main_table[['Name', 'Method', column]]
+#     table.columns = ['Name', 'Method', 'Value']
 
-    model = ols('Value ~ C(Name) + C(Method) + C(Name):C(Method)',
-                data=table).fit()
-    anova_tables[column] = sm.stats.anova_lm(model, typ=2)
+#     model = ols('Value ~ C(Name) + C(Method) + C(Name):C(Method)',
+#                 data=table).fit()
+#     anova_tables[column] = sm.stats.anova_lm(model, typ=2)
 
-for key in anova_tables:
-    print(f'\n{key} ------------------------------')
-    display(anova_tables[key])
-    write([f'<h2>{key}</h2>',
-           anova_tables[key].to_html()])
+# for key in anova_tables:
+#     print(f'\n{key} ------------------------------')
+#     display(anova_tables[key])
+#     write([f'<h2>{key}</h2>',
+#            anova_tables[key].to_html()])
 
 
 # %%

@@ -1,9 +1,18 @@
 {
     "cSpell.words": [
+        "GABOR",
+        "Jupyter",
         "Vectorizer",
         "corrcoef",
         "entr",
+        "ipython",
+        "proba",
+        "probs",
+        "qtconsole",
         "scalings",
-        "trange"
+        "trange",
+        "uids",
+        "xraw",
+        "xtsne"
     ]
 }

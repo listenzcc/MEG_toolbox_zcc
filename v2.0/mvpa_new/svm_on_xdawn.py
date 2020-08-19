@@ -41,8 +41,8 @@ except:
 
 # %%
 data_folder = os.path.join('MVPA_data_xdawn_v2')
-x3_folder = os.path.join('tsne_xdawn_x3')
-names = sorted(os.listdir(data_folder))
+xtsne_folder = os.path.join('tsne_xdawn_x3')
+names = sorted(os.listdir(xtsne_folder))
 # display(names)
 
 # %%
@@ -51,46 +51,93 @@ for name in names:
 
     # Read data -------------------------------------------------
     with open(os.path.join(data_folder, name), 'rb') as f:
-        DATA_x6 = pickle.load(f)
-    with open(os.path.join(x3_folder, name), 'rb') as f:
-        DATA_x3 = pickle.load(f)
-    xx = DATA_x3['x3']
-    xx6 = DATA_x6['x6']
-    train_y = DATA_x3['train_y']
-    test_y = DATA_x3['test_y']
+        DATA_xraw = pickle.load(f)
+
+    with open(os.path.join(data_folder, f'raw_events_{name}'), 'rb') as f:
+        DATA_raw_events = pickle.load(f)
+
+    with open(os.path.join(xtsne_folder, name), 'rb') as f:
+        DATA_xtsne = pickle.load(f)
+
+    xtsne = DATA_xtsne['x3']
+    train_y = DATA_xtsne['train_y']
+    test_y = DATA_xtsne['test_y']
+    raw_train_events = DATA_raw_events['raw_train_events']
+    raw_test_events = DATA_raw_events['raw_train_events']
+    train_xraw = DATA_xraw['train_X']
+    test_xraw = DATA_xraw['test_X']
+    train_events = DATA_xraw['train_events']
+    test_events = DATA_xraw['test_events']
 
     # Split data -----------------------------------------------
-    def split_data(xx, xx6, n):
-        train_xx = xx[:n]
-        test_xx = xx[n:]
+
+    def split_data(xtsne, n):
+        train_xtsne = xtsne[:n]
+        test_xtsne = xtsne[n:]
         scaler = StandardScaler()
-        scaler.fit(train_xx)
-        train_xx = scaler.transform(train_xx)
-        test_xx = scaler.transform(test_xx)
+        scaler.fit(train_xtsne)
+        train_xtsne = scaler.transform(train_xtsne)
+        test_xtsne = scaler.transform(test_xtsne)
 
-        train_xx6 = xx6[:n]
-        test_xx6 = xx6[n:]
-        scaler6 = StandardScaler()
-        scaler6.fit(train_xx6)
-        train_xx6 = scaler6.transform(train_xx6)
-        test_xx6 = scaler6.transform(test_xx6)
-        train_xx6 = train_xx6.reshape(len(train_xx6), 6, 141)
-        test_xx6 = test_xx6.reshape(len(test_xx6), 6, 141)
+        return train_xtsne, test_xtsne
 
-        return train_xx, test_xx, train_xx6, test_xx6
+    train_xtsne, test_xtsne = split_data(xtsne,
+                                         n=len(train_y))
 
-    train_xx, test_xx, train_xx6, test_xx6 = split_data(xx,
-                                                        xx6,
-                                                        n=len(train_y))
-    display(train_xx.shape, test_xx.shape, train_xx6.shape, test_xx6.shape)
+    button_train_events = raw_train_events[raw_train_events[:, -1] == 3]
+    button_test_events = raw_test_events[raw_test_events[:, -1] == 3]
+
+    train_selects = []
+    for j, event in enumerate(train_events):
+        if event[-1] == 1:
+            lags = button_train_events[:, 0] - event[0]
+            lags = lags[lags > 0]
+            if len(lags) == 0:
+                continue
+            if not lags[0] < 0.4 * 1200:
+                train_selects.append(j)
+        else:
+            train_selects.append(j)
+
+    test_selects = []
+    for j, event in enumerate(test_events):
+        if event[-1] == 1:
+            lags = button_test_events[:, 0] - event[0]
+            lags = lags[lags > 0]
+            if len(lags) == 0:
+                continue
+            if not lags[0] < 0.4 * 1200:
+                test_selects.append(j)
+        else:
+            test_selects.append(j)
+
+    display('Before',
+            train_xtsne.shape, test_xtsne.shape,
+            train_xraw.shape, test_xraw.shape,
+            train_y.shape, test_y.shape)
+
+    # train_xtsne = train_xtsne[train_selects]
+    # test_xtsne = test_xtsne[test_selects]
+    # train_xraw = train_xraw[train_selects]
+    # test_xraw = test_xraw[test_selects]
+    # train_y = train_y[train_selects]
+    # test_y = test_y[test_selects]
+
+    display('After',
+            train_xtsne.shape, test_xtsne.shape,
+            train_xraw.shape, test_xraw.shape,
+            train_y.shape, test_y.shape)
+
+    # stophere
+    # break
 
     # TSNE -----------------------------------------------------------
-    def tsne_fit_predict(train_xx, train_y, test_xx):
+    def tsne_fit_predict(train_xtsne, train_y, test_xtsne):
         # Prepare train data -------------------------------
-        dim = train_xx.shape[1]
+        dim = train_xtsne.shape[1]
         train_xe = []
         for j in range(len(train_y)):
-            d = train_xx[j-3:j+4]
+            d = train_xtsne[j-3:j+4]
             if not len(d) == 7:
                 train_xe.append(np.zeros(7 * dim))
                 continue
@@ -104,8 +151,8 @@ for name in names:
         # Prepare test data -------------------------------
         pred_y = test_y * 0
         test_xe = []
-        for j in range(len(test_xx)):
-            d = test_xx[j-3:j+4]
+        for j in range(len(test_xtsne)):
+            d = test_xtsne[j-3:j+4]
             if not len(d) == 7:
                 test_xe.append(np.zeros(7 * dim))
                 continue
@@ -117,10 +164,10 @@ for name in names:
         prob = 1 / np.linalg.norm(subs, axis=1)
         return prob
 
-    tsne_prob = tsne_fit_predict(train_xx, train_y, test_xx)
+    tsne_prob = tsne_fit_predict(train_xtsne, train_y, test_xtsne)
 
     # SVM -----------------------------------------------------------
-    def svm_fit_predict(train_xx6, train_y, test_xx6):
+    def svm_fit_predict(train_xraw, train_y, test_xraw):
         clf = svm.SVC(gamma='scale',
                       kernel='rbf',
                       class_weight='balanced',
@@ -131,12 +178,12 @@ for name in names:
                 [selects.append(j-e) for e in [-1, 0, 1]]
 
         pipeline = make_pipeline(Vectorizer(), clf)
-        pipeline.fit(train_xx6[selects, :, 40:80], train_y[selects])
-        pred = pipeline.predict(test_xx6[:, :, 40:80])
-        prob = pipeline.predict_proba(test_xx6[:, :, 40:80])
+        pipeline.fit(train_xraw[selects, :, 40:80], train_y[selects])
+        pred = pipeline.predict(test_xraw[:, :, 40:80])
+        prob = pipeline.predict_proba(test_xraw[:, :, 40:80])
         return pred, prob
 
-    svm_pred, svm_prob = svm_fit_predict(train_xx6, train_y, test_xx6)
+    svm_pred, svm_prob = svm_fit_predict(train_xraw, train_y, test_xraw)
 
     outputs = dict(
         svm_pred=svm_pred,
@@ -146,7 +193,7 @@ for name in names:
         name=name
     )
 
-    with open(os.path.join('tmpfile',
+    with open(os.path.join('tmpfile_v2_1',
                            f'{name}.pkl'), 'wb') as f:
         pickle.dump(outputs, f)
         display(f'Saved {f.name}')

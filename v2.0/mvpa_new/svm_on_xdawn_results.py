@@ -71,7 +71,7 @@ if not is_notebook():
             print(args)
 
 # %%
-results_folder = os.path.join('tmpfile')
+results_folder = os.path.join('tmpfile_v2_1')
 names = sorted(os.listdir(results_folder))
 # display(names)
 
@@ -102,8 +102,7 @@ for name in names:
     y_true = res.test_y.copy()
     y_true[y_true != 1] = 0
 
-    joint_prob = res.svm_prob[:, 0] * res.tsne_prob
-
+    # joint_prob = res.svm_prob[:, 0] * res.tsne_prob
     # new_joint_prob = joint_prob * 0
     # for j in range(2, len(joint_prob)-2):
     #     new_joint_prob[j] = np.dot([joint_prob[j+e] for e in [-2, -1, 0, 1, 2]],
@@ -111,9 +110,9 @@ for name in names:
     # joint_prob = new_joint_prob.copy()
 
     # Raw ------------------------------------------------------------
-    y_pred = joint_prob * 0
+    y_pred = res.tsne_prob * 0
     # y_pred[joint_prob > 0.25] = 1
-    y_pred[res.tsne_prob > 0.5] = 1
+    y_pred[res.tsne_prob > 0.4] = 1
     report = metrics.classification_report(y_pred=y_pred,
                                            y_true=y_true,
                                            output_dict=True)
@@ -122,11 +121,13 @@ for name in names:
     y_new_pred = y_pred * 0
     for j in range(1, len(y_pred)-1):
         if y_pred[j] == 1:
-            ps = [res.svm_prob[j+e, 0] for e in [-1, 0, 1]]
-            f = np.where(ps == np.max(ps))[0]
-            y_new_pred[j-1+f] = 1
-            # for k in [-1, 0, 1]:
-            # y_new_pred[j+k] = res.svm_pred[j+k]
+            # ps = [res.svm_prob[j+e, 0] - res.svm_prob[j+e, 1]
+            #       for e in [-1, 0, 1]]
+            # f = np.where(ps == np.max(ps))[0]
+            # y_new_pred[j-1+f] = 1
+            for k in [-1, 0, 1]:
+                if res.svm_prob[j+k, 0] > 0.5:
+                    y_new_pred[j+k] = 1
     report = metrics.classification_report(y_pred=y_new_pred,
                                            y_true=y_true,
                                            output_dict=True)
@@ -135,10 +136,13 @@ for name in names:
     # selects = []
     # for j, y in enumerate(y_true):
     #     if y == 1:
-    #         [selects.append(j-e) for e in [-1, 0, 1]]
+    #         [selects.append(j-e) for e in range(-1, 2)]
     # report = metrics.classification_report(y_pred=res.svm_pred[selects],
     #                                        y_true=y_true[selects],
     #                                        output_dict=True)
+
+    if report.get('1', None) is None:
+        report['1'] = report['1.0']
 
     # Loosely metrics -----------------------------------------------
     TP, FP = 0, 0
@@ -154,9 +158,10 @@ for name in names:
     se = pd.Series(report['1'], name=name[:-8])
     frame = frame.append(se)
 
-    # plot([dict(y=y_true, name='True'),
-    #       dict(y=2-y_pred, name='Pred'),
-    #       dict(y=2+y_new_pred, name='New')])
+    plot([dict(y=y_true, name='True'),
+          dict(y=1+y_pred, name='Pred'),
+          dict(y=1+res.tsne_prob, name='Prob'),
+          dict(y=2+y_new_pred, name='New')])
 
     # display(frame.describe())
 
@@ -167,8 +172,10 @@ for name in names:
 display(frame.describe())
 
 # %%
-plot([dict(y=res.svm_prob[selects, 0] + 1, name='Prob'),
-      dict(y=res.svm_pred[selects] - y_true[selects] + 2, name='Diff'),
-      dict(y=y_true[selects], name='True')])
+# plot([dict(y=res.svm_prob[selects, 0] + 1, name='Prob'),
+#       dict(y=res.svm_pred[selects] - y_true[selects] + 2, name='Diff'),
+#       dict(y=y_true[selects], name='True')])
+
+# %%
 
 # %%

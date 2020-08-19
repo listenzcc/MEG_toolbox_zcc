@@ -20,7 +20,7 @@ parameters_meg = dict(picks='mag',
                       decim=12,
                       detrend=1,
                       event='1',
-                      events=['1', '2', '3'],
+                      events=['1', '2', '3', '4'],
                       reject=dict(
                           mag=4e-12,
                       ),
@@ -37,29 +37,29 @@ def run_subject(name):
 
 # %%
 # # pool = []
-# for idx in range(1, 11):
-#     name = f'MEG_S{idx:02d}'
-#     run_subject(name)
-#     # p = multiprocessing.Process(target=run_subject, args=(name,))
-#     # p.start()
+for idx in range(1, 11):
+    name = f'MEG_S{idx:02d}'
+    # run_subject(name)
+    p = multiprocessing.Process(target=run_subject, args=(name,))
+    p.start()
 
 # %%
-idx = 3
-name = f'MEG_S{idx:02d}'
-loader = FileLoader(name, parameters=parameters_meg)
-loader.load_epochs(recompute=False)
-print(loader.epochs_list)
-t = 5
-includes = [e for e in range(len(loader.epochs_list)) if not e == t]
-excludes = [t]
-a, b = loader.leave_one_session_out(includes, excludes)
-print(a, b)
+# idx = 3
+# name = f'MEG_S{idx:02d}'
+# loader = FileLoader(name, parameters=parameters_meg)
+# loader.load_epochs(recompute=False)
+# print(loader.epochs_list)
+# t = 5
+# includes = [e for e in range(len(loader.epochs_list)) if not e == t]
+# excludes = [t]
+# a, b = loader.leave_one_session_out(includes, excludes)
+# print(a, b)
 
 
 # %%
-for eid in a.event_id:
-    print(eid)
-    a[eid].average().plot_joint()
-    b[eid].average().plot_joint()
+# for eid in a.event_id:
+#     print(eid)
+#     a[eid].average().plot_joint()
+#     b[eid].average().plot_joint()
 
 # %%

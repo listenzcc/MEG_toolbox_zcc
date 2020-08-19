@@ -167,8 +167,6 @@ class FileLoader():
             self.load_raws(bandpass=(self.parameters['l_freq'],
                                      self.parameters['h_freq']))
 
-            concatenate_raws = mne.concatenate_raws(self.raws)
-
             # Create new Epochs
             epochs_list = []
             for j, raw in enumerate(self.raws):
@@ -197,7 +195,7 @@ class FileLoader():
 
                 # Solid Epochs
                 path = os.path.join(self.memory_dir, f'Session_{j}-epo.fif')
-                # epochs.save(path)
+                epochs.save(path, overwrite=True)
                 print(f'New epochs is saved: {path}')
 
             # Load Epochs into [self.epochs_list]
@@ -258,6 +256,7 @@ class Enhancer():
                  n_components=6):
         self.train_epochs = train_epochs
         self.test_epochs = test_epochs
+        self.n_components = n_components
         self.xdawn = mne.preprocessing.Xdawn(n_components=n_components)
 
     def fit(self):
@@ -270,9 +269,25 @@ class Enhancer():
         return (enhanced_train_epochs[target_event_id],
                 enhanced_test_epochs[target_event_id])
 
+    def transform(self, baseline=None):
+        train_epochs = self.train_epochs.copy()
+        test_epochs = self.test_epochs.copy()
+
+        train_epochs.apply_baseline(baseline)
+        test_epochs.apply_baseline(baseline)
+
+        train_data = self.xdawn.transform(train_epochs)
+        test_data = self.xdawn.transform(test_epochs)
+
+        return train_data, test_data
+
     def fit_apply(self, target_event_id='1'):
         self.fit()
         return self.apply(target_event_id)
+
+    def fit_transform(self, target_event_id='1'):
+        self.fit()
+        return self.transform()
 
 
 # %%
@@ -371,17 +386,19 @@ class Denoiser():
     def __init__(self):
         pass
 
-    def fit(self, noise_epochs):
-        self.noise_epochs = noise_epochs
+    def fit(self, noise_evoked, noise_events=None):
+        self.noise_evoked = noise_evoked
+        self.noise_events = noise_events
 
-    def transform(self, epochs, labels=[1, 2], allowed_r_min=0):
+    def transform(self, epochs, labels=[1, 2, 4], force_near=True):
         # Get data from [self.epochs]
         data = epochs.get_data()
         events = epochs.events
         num_samples, num_channels, num_times = data.shape
 
-        # Get 11 time points around 0 seconds in noise_epochs
-        noise_evoked = self.noise_epochs.average()
+        # Get 11 time points after 0 seconds in noise_evoked
+        noise_evoked = self.noise_evoked
+        noise_events = self.noise_events
         idx = np.where(noise_evoked.times == 0)[0][0]
         _data = noise_evoked.data[:, idx:idx+11]
 
@@ -390,12 +407,30 @@ class Denoiser():
         cnn = CNN_Model(weights).to(DEVICE)
         learning_rate = num_channels * num_times / np.max(weights)
 
+        def is_near(pos, events):
+            if force_near:
+                return True
+
+            remain = events[events > pos]
+            if len(remain) == 0:
+                return False
+
+            return remain[0] - pos < 800
+
         # De-noise
         xs = []
         for sample in range(num_samples):
             if not events[sample][2] in labels:
-                print(f'    {sample} | {num_samples}, Pass')
+                print(f'    {sample} | {num_samples}, Pass for [not in label]')
                 continue
+
+            try:
+                if not is_near(events[sample][0], noise_events[:, 0]):
+                    print(f'    {sample} | {num_samples}, Pass for [not near]')
+                    continue
+            except:
+                print('Fail on near block')
+                raise Exception('Fail on near block.')
 
             print(f'    {sample} | {num_samples}')
             y_true = data[sample][np.newaxis, :, :]
@@ -403,10 +438,6 @@ class Denoiser():
 
             x, y_estimate, r = cnn.fit(x=x, y_true=y_true,
                                        learning_rate=learning_rate)
-
-            if r < allowed_r_min:
-                print(f'    r is too small, {r}')
-                continue
 
             data[sample] -= y_estimate.reshape(num_channels, num_times)
             xs.append(x)

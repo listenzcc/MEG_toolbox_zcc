@@ -23,6 +23,8 @@ from statsmodels.stats.anova import anova_lm
 
 
 def select_labels(y):
+    # return [e for e in range(len(y))]
+
     n1 = len(np.where(y == 1)[0])
     n2 = len(np.where(y == 2)[0])
     ratio = n1 / n2 * 2
@@ -41,6 +43,35 @@ def select_labels(y):
 
     # Return
     return selects
+
+
+# def compute_scores(y_true, y_pred):
+#     tp = 0
+#     num_1 = len(np.where(y_true == 1)[0])
+#     num_pos = 0
+#     for j, p in enumerate(y_pred):
+#         if p == 1:
+#             num_pos += 1
+#         else:
+#             continue
+
+#         try:
+#             if 1 in y_true[j-1:j+2]:
+#                 tp += 1
+#         except:
+#             pass
+
+#     try:
+#         recall = tp / num_1
+#     except:
+#         recall = 0
+
+#     try:
+#         precision = tp / num_pos
+#     except:
+#         precision = 0
+
+#     return dict(_recall=recall, _precision=precision)
 
 
 class MyFrame():
@@ -79,6 +110,10 @@ class CropFrame(MyFrame):
         report['1']['subject'] = name[:7]
         report['1']['cv'] = name[7:-9]
         report['1']['f1score'] = report['1']['f1-score']
+
+        # _scores = compute_scores(y_pred=crop_pred_y, y_true=test_y)
+        # report['1']['_recall'] = _scores['_recall']
+        # report['1']['_precision'] = _scores['_precision']
 
         return pd.Series(report['1'], name=name[:9])
 
@@ -156,6 +191,7 @@ raw_slide_frame.add('Results_raw_slide')
 
 print(crop_frame.folder)
 frame = crop_frame.frame
+frame.to_html('results_denoise.html')
 display(frame)
 for method in ['denoise', 'raw']:
     print(method)
@@ -214,7 +250,6 @@ grouped = newframe.groupby(level='method')
 grouped.boxplot(subplots=False, rot=45)
 
 # %%
-newframe
 fig, axes = plt.subplots(1, 3, figsize=(12, 4))
 
 for j, value in enumerate(['recall', 'precision', 'f1-score']):

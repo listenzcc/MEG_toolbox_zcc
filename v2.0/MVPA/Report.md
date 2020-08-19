@@ -528,205 +528,81 @@
     </tr>
     <tr>
       <th>mean</th>
-      <td>0.869995</td>
-      <td>0.879647</td>
-      <td>0.871567</td>
-      <td>0.964301</td>
-      <td>0.924631</td>
-      <td>0.929710</td>
-      <td>0.925347</td>
-      <td>0.964369</td>
-      <td>0.966306</td>
-      <td>0.964301</td>
+      <td>0.920364</td>
+      <td>0.955359</td>
+      <td>0.891478</td>
+      <td>0.979439</td>
+      <td>0.954275</td>
+      <td>0.969231</td>
+      <td>0.942445</td>
+      <td>0.978918</td>
+      <td>0.979372</td>
+      <td>0.979439</td>
     </tr>
     <tr>
       <th>std</th>
-      <td>0.089602</td>
-      <td>0.109456</td>
-      <td>0.103422</td>
-      <td>0.025680</td>
-      <td>0.052174</td>
-      <td>0.057207</td>
-      <td>0.054020</td>
-      <td>0.025348</td>
-      <td>0.022898</td>
-      <td>0.025680</td>
+      <td>0.061167</td>
+      <td>0.045751</td>
+      <td>0.086697</td>
+      <td>0.015307</td>
+      <td>0.034928</td>
+      <td>0.026448</td>
+      <td>0.044610</td>
+      <td>0.016136</td>
+      <td>0.015496</td>
+      <td>0.015307</td>
     </tr>
     <tr>
       <th>min</th>
-      <td>0.580645</td>
-      <td>0.528090</td>
-      <td>0.450000</td>
-      <td>0.881671</td>
-      <td>0.758303</td>
-      <td>0.750887</td>
-      <td>0.714691</td>
-      <td>0.875223</td>
-      <td>0.882885</td>
-      <td>0.881671</td>
-    </tr>
-    <tr>
-      <th>25%</th>
-      <td>0.806723</td>
-      <td>0.818182</td>
-      <td>0.821429</td>
-      <td>0.947743</td>
-      <td>0.887187</td>
-      <td>0.893329</td>
-      <td>0.897321</td>
-      <td>0.947203</td>
-      <td>0.951189</td>
-      <td>0.947743</td>
-    </tr>
-    <tr>
-      <th>50%</th>
-      <td>0.891089</td>
-      <td>0.898305</td>
-      <td>0.892857</td>
-      <td>0.972299</td>
-      <td>0.937852</td>
-      <td>0.945153</td>
-      <td>0.937500</td>
-      <td>0.972008</td>
-      <td>0.972930</td>
-      <td>0.972299</td>
-    </tr>
-    <tr>
-      <th>75%</th>
-      <td>0.941176</td>
-      <td>0.975000</td>
-      <td>0.946429</td>
-      <td>0.984169</td>
-      <td>0.966015</td>
-      <td>0.977231</td>
-      <td>0.969894</td>
-      <td>0.983907</td>
-      <td>0.984113</td>
-      <td>0.984169</td>
-    </tr>
-    <tr>
-      <th>max</th>
-      <td>0.990991</td>
-      <td>1.000000</td>
-      <td>0.982143</td>
-      <td>0.997653</td>
-      <td>0.994821</td>
-      <td>0.998652</td>
-      <td>0.991071</td>
-      <td>0.997644</td>
-      <td>0.997659</td>
-      <td>0.997653</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2>SVM_xdawn_denoise_2</h2><table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>1-f1-score</th>
-      <th>1-precision</th>
-      <th>1-recall</th>
-      <th>accuracy</th>
-      <th>macro avg-f1-score</th>
-      <th>macro avg-precision</th>
-      <th>macro avg-recall</th>
-      <th>weighted avg-f1-score</th>
-      <th>weighted avg-precision</th>
-      <th>weighted avg-recall</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>count</th>
-      <td>97.000000</td>
-      <td>97.000000</td>
-      <td>97.000000</td>
-      <td>97.000000</td>
-      <td>97.000000</td>
-      <td>97.000000</td>
-      <td>97.000000</td>
-      <td>97.000000</td>
-      <td>97.000000</td>
-      <td>97.000000</td>
-    </tr>
-    <tr>
-      <th>mean</th>
-      <td>0.878692</td>
-      <td>0.851791</td>
-      <td>0.916090</td>
-      <td>0.964258</td>
-      <td>0.928849</td>
-      <td>0.919118</td>
-      <td>0.944056</td>
-      <td>0.965364</td>
-      <td>0.968270</td>
-      <td>0.964258</td>
-    </tr>
-    <tr>
-      <th>std</th>
-      <td>0.085421</td>
-      <td>0.118896</td>
-      <td>0.068000</td>
-      <td>0.027665</td>
-      <td>0.050892</td>
-      <td>0.061901</td>
-      <td>0.040005</td>
-      <td>0.025915</td>
-      <td>0.022046</td>
-      <td>0.027665</td>
-    </tr>
-    <tr>
-      <th>min</th>
-      <td>0.640000</td>
-      <td>0.510638</td>
+      <td>0.727273</td>
+      <td>0.829268</td>
       <td>0.600000</td>
-      <td>0.874710</td>
-      <td>0.782079</td>
-      <td>0.743450</td>
-      <td>0.779381</td>
-      <td>0.887237</td>
-      <td>0.891597</td>
-      <td>0.874710</td>
+      <td>0.923077</td>
+      <td>0.841248</td>
+      <td>0.892832</td>
+      <td>0.794845</td>
+      <td>0.916258</td>
+      <td>0.923077</td>
+      <td>0.923077</td>
     </tr>
     <tr>
       <th>25%</th>
-      <td>0.816667</td>
-      <td>0.765625</td>
-      <td>0.890909</td>
-      <td>0.948509</td>
-      <td>0.893480</td>
-      <td>0.872010</td>
-      <td>0.925664</td>
-      <td>0.951193</td>
-      <td>0.956190</td>
-      <td>0.948509</td>
+      <td>0.888889</td>
+      <td>0.931818</td>
+      <td>0.857143</td>
+      <td>0.970320</td>
+      <td>0.935647</td>
+      <td>0.954001</td>
+      <td>0.919935</td>
+      <td>0.969548</td>
+      <td>0.970244</td>
+      <td>0.970320</td>
     </tr>
     <tr>
       <th>50%</th>
-      <td>0.900901</td>
-      <td>0.883333</td>
-      <td>0.928571</td>
-      <td>0.971354</td>
-      <td>0.942079</td>
-      <td>0.937035</td>
-      <td>0.951050</td>
-      <td>0.972105</td>
-      <td>0.972245</td>
-      <td>0.971354</td>
+      <td>0.935780</td>
+      <td>0.964286</td>
+      <td>0.910714</td>
+      <td>0.983740</td>
+      <td>0.962611</td>
+      <td>0.976007</td>
+      <td>0.953053</td>
+      <td>0.983465</td>
+      <td>0.983535</td>
+      <td>0.983740</td>
     </tr>
     <tr>
       <th>75%</th>
-      <td>0.947368</td>
-      <td>0.947368</td>
-      <td>0.964286</td>
-      <td>0.985816</td>
-      <td>0.969641</td>
-      <td>0.972239</td>
-      <td>0.975212</td>
-      <td>0.986021</td>
-      <td>0.986278</td>
-      <td>0.985816</td>
+      <td>0.971429</td>
+      <td>1.000000</td>
+      <td>0.946429</td>
+      <td>0.992084</td>
+      <td>0.983374</td>
+      <td>0.992308</td>
+      <td>0.972222</td>
+      <td>0.991987</td>
+      <td>0.992157</td>
+      <td>0.992084</td>
     </tr>
     <tr>
       <th>max</th>
@@ -736,430 +612,10 @@
       <td>0.997653</td>
       <td>0.994821</td>
       <td>0.998652</td>
-      <td>0.991071</td>
+      <td>0.997275</td>
       <td>0.997644</td>
       <td>0.997659</td>
       <td>0.997653</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2>1-f1-score</h2><table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>sum_sq</th>
-      <th>df</th>
-      <th>F</th>
-      <th>PR(&gt;F)</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>C(Name)</th>
-      <td>1.510800</td>
-      <td>9.0</td>
-      <td>70.332054</td>
-      <td>2.989009e-84</td>
-    </tr>
-    <tr>
-      <th>C(Method)</th>
-      <td>0.509503</td>
-      <td>5.0</td>
-      <td>42.693867</td>
-      <td>6.971200e-37</td>
-    </tr>
-    <tr>
-      <th>C(Name):C(Method)</th>
-      <td>0.327358</td>
-      <td>45.0</td>
-      <td>3.047889</td>
-      <td>1.068527e-09</td>
-    </tr>
-    <tr>
-      <th>Residual</th>
-      <td>1.245896</td>
-      <td>522.0</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2>1-precision</h2><table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>sum_sq</th>
-      <th>df</th>
-      <th>F</th>
-      <th>PR(&gt;F)</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>C(Name)</th>
-      <td>1.349566</td>
-      <td>9.0</td>
-      <td>95.739571</td>
-      <td>1.559098e-104</td>
-    </tr>
-    <tr>
-      <th>C(Method)</th>
-      <td>1.331248</td>
-      <td>5.0</td>
-      <td>169.992201</td>
-      <td>4.569285e-107</td>
-    </tr>
-    <tr>
-      <th>C(Name):C(Method)</th>
-      <td>0.987199</td>
-      <td>45.0</td>
-      <td>14.006587</td>
-      <td>4.102756e-64</td>
-    </tr>
-    <tr>
-      <th>Residual</th>
-      <td>0.817581</td>
-      <td>522.0</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2>1-recall</h2><table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>sum_sq</th>
-      <th>df</th>
-      <th>F</th>
-      <th>PR(&gt;F)</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>C(Name)</th>
-      <td>1.496478</td>
-      <td>9.0</td>
-      <td>28.062942</td>
-      <td>9.593694e-40</td>
-    </tr>
-    <tr>
-      <th>C(Method)</th>
-      <td>0.776350</td>
-      <td>5.0</td>
-      <td>26.205518</td>
-      <td>1.210104e-23</td>
-    </tr>
-    <tr>
-      <th>C(Name):C(Method)</th>
-      <td>0.261890</td>
-      <td>45.0</td>
-      <td>0.982228</td>
-      <td>5.078048e-01</td>
-    </tr>
-    <tr>
-      <th>Residual</th>
-      <td>3.092895</td>
-      <td>522.0</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2>accuracy</h2><table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>sum_sq</th>
-      <th>df</th>
-      <th>F</th>
-      <th>PR(&gt;F)</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>C(Name)</th>
-      <td>0.115220</td>
-      <td>9.0</td>
-      <td>95.002156</td>
-      <td>5.413204e-104</td>
-    </tr>
-    <tr>
-      <th>C(Method)</th>
-      <td>0.041407</td>
-      <td>5.0</td>
-      <td>61.453611</td>
-      <td>2.480334e-50</td>
-    </tr>
-    <tr>
-      <th>C(Name):C(Method)</th>
-      <td>0.036487</td>
-      <td>45.0</td>
-      <td>6.016857</td>
-      <td>4.482748e-26</td>
-    </tr>
-    <tr>
-      <th>Residual</th>
-      <td>0.070343</td>
-      <td>522.0</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2>macro avg-f1-score</h2><table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>sum_sq</th>
-      <th>df</th>
-      <th>F</th>
-      <th>PR(&gt;F)</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>C(Name)</th>
-      <td>0.508772</td>
-      <td>9.0</td>
-      <td>74.175136</td>
-      <td>1.467839e-87</td>
-    </tr>
-    <tr>
-      <th>C(Method)</th>
-      <td>0.172125</td>
-      <td>5.0</td>
-      <td>45.170155</td>
-      <td>9.472835e-39</td>
-    </tr>
-    <tr>
-      <th>C(Name):C(Method)</th>
-      <td>0.116409</td>
-      <td>45.0</td>
-      <td>3.394301</td>
-      <td>1.404810e-11</td>
-    </tr>
-    <tr>
-      <th>Residual</th>
-      <td>0.397825</td>
-      <td>522.0</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2>macro avg-precision</h2><table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>sum_sq</th>
-      <th>df</th>
-      <th>F</th>
-      <th>PR(&gt;F)</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>C(Name)</th>
-      <td>0.440585</td>
-      <td>9.0</td>
-      <td>125.833986</td>
-      <td>1.179468e-124</td>
-    </tr>
-    <tr>
-      <th>C(Method)</th>
-      <td>0.326811</td>
-      <td>5.0</td>
-      <td>168.010762</td>
-      <td>3.009179e-106</td>
-    </tr>
-    <tr>
-      <th>C(Name):C(Method)</th>
-      <td>0.245016</td>
-      <td>45.0</td>
-      <td>13.995621</td>
-      <td>4.553427e-64</td>
-    </tr>
-    <tr>
-      <th>Residual</th>
-      <td>0.203076</td>
-      <td>522.0</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2>macro avg-recall</h2><table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>sum_sq</th>
-      <th>df</th>
-      <th>F</th>
-      <th>PR(&gt;F)</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>C(Name)</th>
-      <td>0.492568</td>
-      <td>9.0</td>
-      <td>38.522378</td>
-      <td>1.927521e-52</td>
-    </tr>
-    <tr>
-      <th>C(Method)</th>
-      <td>0.183065</td>
-      <td>5.0</td>
-      <td>25.770660</td>
-      <td>2.833330e-23</td>
-    </tr>
-    <tr>
-      <th>C(Name):C(Method)</th>
-      <td>0.063477</td>
-      <td>45.0</td>
-      <td>0.992866</td>
-      <td>4.883512e-01</td>
-    </tr>
-    <tr>
-      <th>Residual</th>
-      <td>0.741619</td>
-      <td>522.0</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2>weighted avg-f1-score</h2><table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>sum_sq</th>
-      <th>df</th>
-      <th>F</th>
-      <th>PR(&gt;F)</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>C(Name)</th>
-      <td>0.114407</td>
-      <td>9.0</td>
-      <td>79.856191</td>
-      <td>2.782237e-92</td>
-    </tr>
-    <tr>
-      <th>C(Method)</th>
-      <td>0.039319</td>
-      <td>5.0</td>
-      <td>49.401065</td>
-      <td>7.149700e-42</td>
-    </tr>
-    <tr>
-      <th>C(Name):C(Method)</th>
-      <td>0.030410</td>
-      <td>45.0</td>
-      <td>4.245237</td>
-      <td>2.709270e-16</td>
-    </tr>
-    <tr>
-      <th>Residual</th>
-      <td>0.083094</td>
-      <td>522.0</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2>weighted avg-precision</h2><table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>sum_sq</th>
-      <th>df</th>
-      <th>F</th>
-      <th>PR(&gt;F)</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>C(Name)</th>
-      <td>0.096402</td>
-      <td>9.0</td>
-      <td>87.985112</td>
-      <td>1.023267e-98</td>
-    </tr>
-    <tr>
-      <th>C(Method)</th>
-      <td>0.032276</td>
-      <td>5.0</td>
-      <td>53.025285</td>
-      <td>1.757213e-44</td>
-    </tr>
-    <tr>
-      <th>C(Name):C(Method)</th>
-      <td>0.020348</td>
-      <td>45.0</td>
-      <td>3.714360</td>
-      <td>2.421256e-13</td>
-    </tr>
-    <tr>
-      <th>Residual</th>
-      <td>0.063548</td>
-      <td>522.0</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2>weighted avg-recall</h2><table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>sum_sq</th>
-      <th>df</th>
-      <th>F</th>
-      <th>PR(&gt;F)</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>C(Name)</th>
-      <td>0.115220</td>
-      <td>9.0</td>
-      <td>95.002156</td>
-      <td>5.413204e-104</td>
-    </tr>
-    <tr>
-      <th>C(Method)</th>
-      <td>0.041407</td>
-      <td>5.0</td>
-      <td>61.453611</td>
-      <td>2.480334e-50</td>
-    </tr>
-    <tr>
-      <th>C(Name):C(Method)</th>
-      <td>0.036487</td>
-      <td>45.0</td>
-      <td>6.016857</td>
-      <td>4.482748e-26</td>
-    </tr>
-    <tr>
-      <th>Residual</th>
-      <td>0.070343</td>
-      <td>522.0</td>
-      <td>NaN</td>
-      <td>NaN</td>
     </tr>
   </tbody>
 </table>
