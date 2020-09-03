@@ -2,10 +2,12 @@
     "cSpell.words": [
         "GABOR",
         "Jupyter",
+        "Toeplitz",
         "Vectorizer",
         "corrcoef",
         "entr",
         "ipython",
+        "pinv",
         "proba",
         "probs",
         "qtconsole",
