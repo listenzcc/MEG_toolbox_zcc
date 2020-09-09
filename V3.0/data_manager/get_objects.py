@@ -119,7 +119,7 @@ def get_epochs(raw, params_name='MEG'):
                       decim=12,
                       detrend=1,
                       reject=dict(mag=4e-12),
-                      baseline=(None, 0))
+                      baseline=None)
 
         epochs = mne.Epochs(raw, **params)
         epochs.drop_bad()
