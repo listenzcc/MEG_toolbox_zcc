@@ -11,42 +11,33 @@ import torch.nn as nn
 DEVICE = 'cuda'
 
 
-class PreprocessXdawn():
-    # !!! I am not sure if the method is necessary
-    def __init__(self, train_epochs, test_epochs, n_components=6):
-        self.train_epochs = train_epochs
-        self.test_epochs = test_epochs
-        self.n_components = n_components
+class MyXdawn(object):
+    # Customized Xdawn object
+    #   xdawn: The xdawn filter object
+    #   train_epochs: The epochs to train xdawn
+    #   __init__(train_epochs[, n_components=6]): Init method using [n_components]
+    #   fit(): Fit the xdawn train_epochs
+    #   transform([, epochs=None]): Transfrom [epochs] or train_epochs if [epochs] is None
+    #   apply([, epochs=None]): Apply xdawn to [epochs] or train_epochs if [epochs] is None
+
+    def __init__(self, train_epochs, n_components=6):
         self.xdawn = mne.preprocessing.Xdawn(n_components=n_components)
+        self.train_epochs = train_epochs
+        print('MyXdawn initialized successfully')
 
     def fit(self):
         self.xdawn.fit(self.train_epochs)
+        print('MyXdawn fitted successfully')
 
-    def apply(self, target_event_id):
-        applied_train_epochs = self.xdawn.apply(self.train_epochs)
-        applied_test_epochs = self.xdawn.apply(self.test_epochs)
+    def transform(self, epochs=None):
+        if epochs is None:
+            return self.xdawn.transform(self.train_epochs)
+        return self.xdawn.transform(epochs)
 
-        return applied_train_epochs, applied_test_epochs
-
-    def transform(self, baseline=(None, 0)):
-        train_epochs = self.train_epochs.copy()
-        test_epochs = self.test_epochs.copy()
-
-        train_epochs.apply_baseline(baseline)
-        test_epochs.apply_baseline(baseline)
-
-        train_data = self.xdawn.transform(train_epochs)
-        test_data = self.xdawn.transform(test_epochs)
-
-        return train_data, test_data
-
-    def fit_apply(self, target_event_id='1'):
-        self.fit()
-        return self.apply(target_event_id)
-
-    def fit_transform(self, target_event_id='1'):
-        self.fit()
-        return self.transform()
+    def apply(self, epochs=None):
+        if epochs is None:
+            return self.xdawn.apply(self.train_epochs)
+        return self.xdawn.apply(epochs)
 
 
 def numpy2torch(array, dtype=np.float32, device=DEVICE):
