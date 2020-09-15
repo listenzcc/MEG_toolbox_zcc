@@ -92,7 +92,7 @@ def get_toeplitz(event, events, specials=None):
 
             # Mark diag
             matrix[pair_idxs[:, 0], pair_idxs[:, 1]] = names[name]
-    
+
     return matrix, specials
 
 
@@ -109,12 +109,4 @@ for idx in [446, 447, 448]:
     ax.set_title(idx)
 
 
-# %%
-epochs_1.events
-# %%
-epochs_1['1'][0].events
-# %%
-epochs_1.get_data().shape
-# %%
-epochs_1.events
 # %%
