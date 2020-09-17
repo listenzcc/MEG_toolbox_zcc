@@ -11,6 +11,8 @@ import torch.nn as nn
 DEVICE = 'cuda'
 
 
+# %%
+# Xdawn worker
 class MyXdawn(object):
     # Customized Xdawn object
     #   xdawn: The xdawn filter object
@@ -40,6 +42,8 @@ class MyXdawn(object):
         return self.xdawn.apply(epochs)
 
 
+# %%
+# Local tools for pytorch
 def numpy2torch(array, dtype=np.float32, device=DEVICE):
     # Attach [array] to the type of torch
     return torch.from_numpy(array.astype(dtype)).to(device)
@@ -48,6 +52,98 @@ def numpy2torch(array, dtype=np.float32, device=DEVICE):
 def torch2numpy(tensor):
     # Detach [tensor] to the type of numpy
     return tensor.detach().cpu().numpy()
+
+
+# %%
+# Pytorch model
+class MyModel(nn.Module):
+    # Pytorch linear model for learning ERP temporal and spatial patterns
+    # X = D \cdot R \cdot S
+    # X: Epoch data, times(100) x sensors(272)
+    # D: Toeplitz matrix, times(100) x 600ms(60)
+    # R: ERP temporal pattern, 600ms(60) x channels(?)
+    # S: ERP spatial pattern, channels(?) x sensors(272)
+
+    def __init__(self, num_channels=6):
+        super(MyModel, self).__init__()
+        self.num_channels = num_channels
+        self.trainables = dict()
+        self.init_layers()
+
+    def append_trainable(self, tensor, name='default'):
+        while name in self.trainables:
+            name += '_1'
+        self.trainables[name] = tensor
+        print(f'Added new trainable of {name}')
+
+    def list_trainables(self):
+        tensors = []
+        print('Listing trainables: ')
+        for j, key in enumerate(self.trainables):
+            print(j, key)
+            tensors.append(self.trainables[key])
+        print('That is all')
+        return tensors
+
+    def init_layers(self):
+        # self.R = nn.Conv1d(in_channels=100,
+        #                    out_channels=self.num_channels,
+        #                    kernel_size=60,
+        #                    padding=30)
+
+        # --------------------------------------------------
+        self.R1 = nn.Linear(in_features=60,
+                            out_features=self.num_channels,
+                            bias=False)
+
+        self.S1 = nn.Linear(in_features=self.num_channels,
+                            out_features=272,
+                            bias=False)
+
+        # --------------------------------------------------
+        self.R2 = nn.Linear(in_features=60,
+                            out_features=self.num_channels,
+                            bias=False)
+
+        self.S2 = nn.Linear(in_features=self.num_channels,
+                            out_features=272,
+                            bias=False)
+
+        # --------------------------------------------------
+        self.R3 = nn.Linear(in_features=60,
+                            out_features=self.num_channels,
+                            bias=False)
+
+        self.S3 = nn.Linear(in_features=self.num_channels,
+                            out_features=272,
+                            bias=False)
+
+        for linear, name in zip([self.R1, self.R2, self.R3, self.S1, self.S2, self.S3],
+                                ['R1', 'R2', 'R3', 'S1', 'S2', 'S3']):
+            self.append_trainable(linear.weight, name)
+
+    def forward(self, D):
+        # print(f'D size is {D.shape}')
+        D1 = D[:, :, 0:60]
+        D2 = D[:, :, 60:120]
+        D3 = D[:, :, 120:180]
+
+        # ---------------
+        y1 = self.R1(D1)
+        y1 = self.S1(y1)
+
+        # ---------------
+        y2 = self.R2(D2)
+        y2 = self.S2(y2)
+
+        # ---------------
+        y3 = self.R3(D3)
+        y3 = self.S3(y3)
+
+        y = y1 + y2 + y3
+        return y
+
+# %%
 
 
 class CNN_Model(nn.Module):

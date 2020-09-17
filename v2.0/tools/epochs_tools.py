@@ -1,7 +1,10 @@
+# File: epochs_tools.py
+# Aim: Easy-to-use epochs tools
+
 import numpy as np
 
 
-def get_MVPA_data(epochs):
+def epochs_get_MVPA_data(epochs):
     # Get X, y[,z] from epochs
     # X: Data matrix, size is sample x channel x times
     # y: Label vector, size is sample
