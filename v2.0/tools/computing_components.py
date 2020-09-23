@@ -59,16 +59,19 @@ def torch2numpy(tensor):
 class MyModel(nn.Module):
     # Pytorch linear model for learning ERP temporal and spatial patterns
     # X = D \cdot R \cdot S
-    # X: Epoch data, times(100) x sensors(272)
-    # D: Toeplitz matrix, times(100) x 600ms(60)
-    # R: ERP temporal pattern, 600ms(60) x channels(?)
-    # S: ERP spatial pattern, channels(?) x sensors(272)
+    # X: Epoch data, times x num_sensors
+    # D: Toeplitz matrix, times x ERP_length
+    # R: ERP temporal pattern, ERP_length x num_channels
+    # S: ERP spatial pattern, num_channels x num_sensors
+    #    times = num_ERP_length
 
-    def __init__(self, num_channels=6):
+    def __init__(self, num_channels=6, ERP_length=80, num_sensors=272, bias=False):
         super(MyModel, self).__init__()
         self.num_channels = num_channels
+        self.ERP_length = ERP_length
+        self.num_sensors = num_sensors
         self.trainables = dict()
-        self.init_layers()
+        self.init_layers(bias)
 
     def append_trainable(self, tensor, name='default'):
         while name in self.trainables:
@@ -85,48 +88,52 @@ class MyModel(nn.Module):
         print('That is all')
         return tensors
 
-    def init_layers(self):
+    def init_layers(self, bias):
         # self.R = nn.Conv1d(in_channels=100,
         #                    out_channels=self.num_channels,
         #                    kernel_size=60,
         #                    padding=30)
 
+        print(f'Bias is {bias}')
+
         # --------------------------------------------------
-        self.R1 = nn.Linear(in_features=60,
+        self.R1 = nn.Linear(in_features=self.ERP_length,
                             out_features=self.num_channels,
-                            bias=False)
+                            bias=bias)
 
         self.S1 = nn.Linear(in_features=self.num_channels,
-                            out_features=272,
-                            bias=False)
+                            out_features=self.num_sensors,
+                            bias=bias)
 
         # --------------------------------------------------
-        self.R2 = nn.Linear(in_features=60,
+        self.R2 = nn.Linear(in_features=self.ERP_length,
                             out_features=self.num_channels,
-                            bias=False)
+                            bias=bias)
 
         self.S2 = nn.Linear(in_features=self.num_channels,
-                            out_features=272,
-                            bias=False)
+                            out_features=self.num_sensors,
+                            bias=bias)
 
         # --------------------------------------------------
-        self.R3 = nn.Linear(in_features=60,
+        self.R3 = nn.Linear(in_features=self.ERP_length,
                             out_features=self.num_channels,
-                            bias=False)
+                            bias=bias)
 
         self.S3 = nn.Linear(in_features=self.num_channels,
-                            out_features=272,
-                            bias=False)
+                            out_features=self.num_sensors,
+                            bias=bias)
 
         for linear, name in zip([self.R1, self.R2, self.R3, self.S1, self.S2, self.S3],
                                 ['R1', 'R2', 'R3', 'S1', 'S2', 'S3']):
-            self.append_trainable(linear.weight, name)
+            self.append_trainable(linear.weight, f'{name}_weight')
+            if bias:
+                self.append_trainable(linear.bias, f'{name}_bias')
 
     def forward(self, D):
         # print(f'D size is {D.shape}')
-        D1 = D[:, :, 0:60]
-        D2 = D[:, :, 60:120]
-        D3 = D[:, :, 120:180]
+        D1 = D[:, :, 0*self.ERP_length:1*self.ERP_length]
+        D2 = D[:, :, 1*self.ERP_length:2*self.ERP_length]
+        D3 = D[:, :, 2*self.ERP_length:3*self.ERP_length]
 
         # ---------------
         y1 = self.R1(D1)

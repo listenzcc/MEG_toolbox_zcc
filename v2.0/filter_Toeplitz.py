@@ -14,6 +14,11 @@ from tools.computing_components import MyModel, torch, nn, DEVICE, numpy2torch, 
 from torchsummary import summary
 
 # %%
+# Constants
+
+ERP_length = 80
+
+# %%
 
 
 def extend_matrix(matrix):
@@ -21,12 +26,12 @@ def extend_matrix(matrix):
     # Value 1 on the first 60 columns;
     # Value 2 on the second 60 columns;
     # Value 3 on the third 60 columns.
-    extended_matrix = np.zeros((100, 60*3))
+    extended_matrix = np.zeros((ERP_length, ERP_length*3))
     values = [1, 2, 3]
     for j in range(3):
-        _matrix = np.zeros((100, 60))
+        _matrix = np.zeros((ERP_length, ERP_length))
         _matrix[matrix == values[j]] = 1
-        extended_matrix[:, 60*j:60*j+60] = _matrix
+        extended_matrix[:, ERP_length*j:ERP_length*(j+1)] = _matrix
     return extended_matrix
 
 
@@ -100,7 +105,7 @@ class ToeplitzData(object):
             return self.memory[str(idx)], data
 
         # Init matrix
-        matrix = np.zeros((100, 60))
+        matrix = np.zeros((ERP_length, ERP_length))
 
         # Mark 'diags'
         for name in self.names:
@@ -114,12 +119,12 @@ class ToeplitzData(object):
                     continue
 
                 # Get pair_idxs, [[x1, y1], [x2, y2], ... ]
-                pair_idxs = [[e, e-d] for e in range(d, d+60)]
+                pair_idxs = [[e, e-d] for e in range(d, d+ERP_length)]
                 # Make sure every [x, y] is in toeplitz matrix
                 pair_idxs = [e for e in pair_idxs if all([e[0] > -1,
-                                                          e[0] < 100,
+                                                          e[0] < ERP_length,
                                                           e[1] > -1,
-                                                          e[1] < 60])]
+                                                          e[1] < ERP_length])]
 
                 # Continue if no diag to mark
                 if len(pair_idxs) == 0:
@@ -140,8 +145,21 @@ class ToeplitzData(object):
 # %%
 name = 'MEG_S02'
 
-dm = DataManager(name)
-dm.load_epochs(recompute=False)
+parameters_meg = dict(picks='mag',
+                      stim_channel='UPPT001',
+                      l_freq=0.1,
+                      h_freq=20,  # 7,
+                      tmin=-0.2,
+                      tmax=1.2,
+                      decim=12,
+                      detrend=1,
+                      reject=dict(
+                          mag=4e-12,
+                      ),
+                      baseline=None)
+
+dm = DataManager(name, parameters=parameters_meg)
+dm.load_epochs(recompute=True)
 
 # %%
 epochs_1, epochs_2 = dm.leave_one_session_out(includes=[1, 3, 5],
@@ -157,10 +175,11 @@ def relabel(_epochs):
 
 relabel(epochs_1)
 relabel(epochs_2)
-epochs_1.apply_baseline((None, 0))
-epochs_2.apply_baseline((None, 0))
-epochs_1.crop(tmin=0, tmax=1, include_tmax=False)
-epochs_2.crop(tmin=0, tmax=1, include_tmax=False)
+epochs_1 = epochs_1.apply_baseline((None, 0))
+epochs_2 = epochs_2.apply_baseline((None, 0))
+# Assume the sample frequency is 100 Hz
+epochs_1.crop(tmin=0, tmax=ERP_length / 100, include_tmax=False)
+epochs_2.crop(tmin=0, tmax=ERP_length / 100, include_tmax=False)
 epochs_1, epochs_2
 
 toeplitz_data = ToeplitzData(epochs_1)
@@ -231,30 +250,41 @@ matrix.shape, data.shape
 # %%
 # Build a Network to learn R and S
 
-model = MyModel().to(DEVICE)
-summary(model, (100, 60 * 3))
+model = MyModel(num_channels=6, bias=True).to(DEVICE)
+summary(model, (ERP_length, ERP_length * 3))
 
-learning_rate = 0.03
+# %%
+learning_rate = 0.05
 criterion = nn.MSELoss()
-criterion = nn.L1Loss()
+# criterion = nn.L1Loss()
+
 optimizer = torch.optim.Adam(model.list_trainables(),
                              lr=learning_rate)
+
+# optimizer = torch.optim.SGD(model.list_trainables(),
+#                             lr=learning_rate)
+
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer,
-                                            step_size=20,
+                                            step_size=50,
                                             gamma=0.8)
 
-for j in range(200):
-    X, Y = get_training_session(toeplitz_data, num_each_name=20)
+num_each_name = 100
+
+for j in range(100):
+    X, Y = get_training_session(toeplitz_data,
+                                names=['1', '2', '3'],
+                                num_each_name=num_each_name)
     Y *= 1e14
     X = numpy2torch(X)
     Y = numpy2torch(Y)
-    y = model.forward(X)
-    loss = criterion(y, Y)
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
-    scheduler.step()
-    print(f'  {j}, Loss: {loss.item()}')
+    for _ in range(2):
+        y = model.forward(X)
+        loss = criterion(y, Y)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        scheduler.step()
+        print(f'  {j}, Loss: {loss.item()}')
 
 # %%
 # m = torch2numpy(model.R1.weight)
@@ -270,30 +300,51 @@ def plot_joint(y,
                evoked=evoked_template.copy(),
                title='No title'):
     y_numpy = torch2numpy(y)
-    y_mean = np.mean(y_numpy[task_id*20-20:task_id*20], axis=0)
+    y_mean = np.mean(
+        y_numpy[(task_id-1)*num_each_name:task_id*num_each_name], axis=0)
     evoked.data = y_mean.transpose()
     evoked.plot_joint(title=title)
 
 
-for task_id in [1, 2, 3]:
-    plot_joint(y, task_id=task_id, title=f'Estimation {task_id}')
-    plot_joint(Y, task_id=task_id, title=f'GroundTruth {task_id}')
+# -----------------------------------------------------------------------
+for j, task_id in enumerate([1, 2, 3]):
+    plot_joint(y, task_id=j+1, title=f'Estimation {task_id}')
+    plot_joint(Y, task_id=j+1, title=f'GroundTruth {task_id}')
 
-# %%
+# -----------------------------------------------------------------------
+# Single diag
 for value in [1, 2, 3]:
-    matrix = np.zeros((100, 60))
-    for j in range(60):
+    matrix = np.zeros((ERP_length, ERP_length))
+    for j in range(ERP_length):
         matrix[j, j] = value
 
     new_matrix = extend_matrix(matrix)
     new_matrix = new_matrix[np.newaxis, :]
 
     _y = model.forward(numpy2torch(new_matrix))
-    _y.shape
 
     evoked = evoked_template.copy()
     evoked.data = torch2numpy(_y)[0].transpose()
     evoked.plot_joint(title=value)
     print()
+
+# Multiple diags
+matrix = np.zeros((ERP_length, ERP_length))
+for j in range(ERP_length):
+    matrix[j, range(j % 10, ERP_length, 10)] = 2
+
+new_matrix = extend_matrix(matrix)
+new_matrix = new_matrix[np.newaxis, :]
+
+_y = model.forward(numpy2torch(new_matrix))
+
+evoked = evoked_template.copy()
+evoked.data = torch2numpy(_y)[0].transpose()
+evoked.plot_joint(title='m2')
+print()
+
+
+# %%
+epochs_1
 
 # %%
