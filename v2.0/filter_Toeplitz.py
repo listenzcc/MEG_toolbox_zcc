@@ -202,7 +202,6 @@ toeplitz_data = ToeplitzData(epochs_1)
 #     ax.imshow(matrix)
 #     ax.set_title(e)
 
-
 # %%
 
 
@@ -270,26 +269,29 @@ scheduler = torch.optim.lr_scheduler.StepLR(optimizer,
 
 num_each_name = 100
 
-for j in range(100):
-    X, Y = get_training_session(toeplitz_data,
-                                names=['1', '2', '3'],
-                                num_each_name=num_each_name)
-    Y *= 1e14
-    X = numpy2torch(X)
-    Y = numpy2torch(Y)
-    for _ in range(2):
-        y = model.forward(X)
-        loss = criterion(y, Y)
+for j in range(10):
+    matrix, data = get_training_session(toeplitz_data,
+                                        names=['1', '2', '3'],
+                                        num_each_name=num_each_name)
+    data *= 1e14
+    for _ in range(10):
+        estimated_data = model.forward(numpy2torch(matrix))
+        loss = criterion(estimated_data, numpy2torch(data))
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
         scheduler.step()
         print(f'  {j}, Loss: {loss.item()}')
+print('Training is Done.')
+
 
 # %%
-# m = torch2numpy(model.R1.weight)
-# plt.imshow(m)
-# print()
+idx = 150
+fig, axes = plt.subplots(3, 1, figsize=(8, 12))
+axes[0].plot(data[idx])
+axes[1].plot(torch2numpy(estimated_data)[idx])
+axes[2].plot((data[idx]-torch2numpy(estimated_data)[idx]))
+print()
 
 # %%
 evoked_template = epochs_1.average().copy()
@@ -299,17 +301,17 @@ def plot_joint(y,
                task_id=1,
                evoked=evoked_template.copy(),
                title='No title'):
-    y_numpy = torch2numpy(y)
-    y_mean = np.mean(
-        y_numpy[(task_id-1)*num_each_name:task_id*num_each_name], axis=0)
+    y_mean = np.mean(y[(task_id-1)*num_each_name:task_id*num_each_name],
+                     axis=0)
     evoked.data = y_mean.transpose()
     evoked.plot_joint(title=title)
 
 
 # -----------------------------------------------------------------------
 for j, task_id in enumerate([1, 2, 3]):
-    plot_joint(y, task_id=j+1, title=f'Estimation {task_id}')
-    plot_joint(Y, task_id=j+1, title=f'GroundTruth {task_id}')
+    plot_joint(data, task_id=j+1, title=f'Estimation {task_id}')
+    plot_joint(torch2numpy(estimated_data), task_id=j +
+               1, title=f'GroundTruth {task_id}')
 
 # -----------------------------------------------------------------------
 # Single diag
@@ -347,4 +349,23 @@ print()
 # %%
 epochs_1
 
+# %%
+events = epochs_1.events
+matrix, data = toeplitz_data.get_toeplitz(events[33])
+matrix = extend_matrix(matrix)
+data *= 1e14
+estimated_data = torch2numpy(model.forward(
+    numpy2torch(matrix[np.newaxis, :])))[0]
+
+matrix.shape, data.shape, estimated_data.shape
+
+# %%
+fig, axes = plt.subplots(3, 1, figsize=(8, 12))
+axes[0].plot(data)
+axes[1].plot(estimated_data)
+axes[2].plot((data-estimated_data))
+print()
+
+# %%
+plt.imshow(matrix)
 # %%
