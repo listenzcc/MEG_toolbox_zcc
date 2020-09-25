@@ -22,12 +22,12 @@ class MyXdawn(object):
     #   transform([, epochs=None]): Transfrom [epochs] or train_epochs if [epochs] is None
     #   apply([, epochs=None]): Apply xdawn to [epochs] or train_epochs if [epochs] is None
 
-    def __init__(self, train_epochs, n_components=6):
+    def __init__(self, n_components=6):
         self.xdawn = mne.preprocessing.Xdawn(n_components=n_components)
-        self.train_epochs = train_epochs
         print('MyXdawn initialized successfully')
 
-    def fit(self):
+    def fit(self, train_epochs):
+        self.train_epochs = train_epochs
         self.xdawn.fit(self.train_epochs)
         print('MyXdawn fitted successfully')
 

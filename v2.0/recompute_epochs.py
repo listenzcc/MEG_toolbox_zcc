@@ -13,7 +13,7 @@ from tools.data_manager import DataManager
 parameters_meg = dict(picks='mag',
                       stim_channel='UPPT001',
                       l_freq=0.1,
-                      h_freq=7,
+                      h_freq=15.0,
                       tmin=-0.2,
                       tmax=1.2,
                       decim=12,
