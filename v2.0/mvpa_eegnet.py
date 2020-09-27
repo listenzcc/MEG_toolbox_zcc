@@ -1,7 +1,12 @@
-# File: analysis.py
-# Aim: Analysis script, testing the filters applying on epochs.
+# File: mvpa_eegnet.py
+# Aim: Calculate MVPA baseline using EEG net
 
 # %%
+from sklearn.model_selection import StratifiedKFold
+import torch.optim as optim
+
+import plotly.graph_objs as go
+import plotly
 import mne
 import numpy as np
 import matplotlib.pyplot as plt
@@ -16,11 +21,172 @@ from sklearn.decomposition import PCA
 import pandas as pd
 
 from tools.data_manager import DataManager
-from tools.computing_components import MyXdawn
+
+import torchsummary
+# from eegnet import EEGNet, numpy2torch, torch2numpy, DEVICE
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
 # %%
-import plotly
-import plotly.graph_objs as go
+
+DEVICE = 'cuda'
+
+
+def numpy2torch(array, dtype=np.float32, device=DEVICE):
+    # Attach [array] to the type of torch
+    return torch.from_numpy(array.astype(dtype)).to(device)
+
+
+def torch2numpy(tensor):
+    # Detach [tensor] to the type of numpy
+    return tensor.detach().cpu().numpy()
+
+
+class EEGNet(nn.Module):
+    def __init__(self):
+        super(EEGNet, self).__init__()
+        # self.T = 61
+
+        # Layer 1
+        self.conv1 = nn.Conv2d(1, 16, (1, 272), padding=0)
+        self.batchnorm1 = nn.BatchNorm2d(16, False)
+
+        # Layer 2
+        self.padding1 = nn.ZeroPad2d((16, 17, 1, 1))
+        self.conv2 = nn.Conv2d(1, 4, (2, 32))
+        self.batchnorm2 = nn.BatchNorm2d(4, False)
+        self.pooling2 = nn.MaxPool2d(2, 4)
+
+        # Layer 3
+        self.padding2 = nn.ZeroPad2d((2, 1, 4, 3))
+        self.conv3 = nn.Conv2d(4, 4, (8, 4))
+        self.batchnorm3 = nn.BatchNorm2d(4, False)
+        self.pooling3 = nn.MaxPool2d((2, 4))
+
+        # FC Layer
+        # NOTE: This dimension will depend on the number of timestamps per sample in your data.
+        self.fc1 = nn.Linear(4 * 2 * 6, 1)
+
+    def forward(self, x):
+        # Layer 1
+        x = F.elu(self.conv1(x))
+        x = self.batchnorm1(x)
+        x = F.dropout(x, 0.25)
+        x = x.permute(0, 3, 1, 2)
+
+        # Layer 2
+        x = self.padding1(x)
+        x = F.elu(self.conv2(x))
+        x = self.batchnorm2(x)
+        x = F.dropout(x, 0.25)
+        x = self.pooling2(x)
+
+        # Layer 3
+        x = self.padding2(x)
+        x = F.elu(self.conv3(x))
+        x = self.batchnorm3(x)
+        x = F.dropout(x, 0.25)
+        x = self.pooling3(x)
+
+        # FC Layer
+        # x = x.view(-1, 4*2*7)
+        x = x.view(-1, 4 * 2 * 6)
+        x = torch.sigmoid(self.fc1(x))
+        return x
+
+
+# %%
+net = EEGNet().cuda()
+torchsummary.summary(net, input_size=(1, 100, 272))
+
+# %%
+criterion = nn.BCELoss()
+optimizer = optim.Adam(net.parameters(),
+                       lr=0.01)
+# scheduler = optim.lr_scheduler.StepLR(optimizer,
+#                                       step_size=20,
+#                                       gamma=0.5)
+
+X = numpy2torch(_train_data[:100][:, np.newaxis, :].transpose([0, 1, 3, 2]))
+X *= 1e12
+y_true = numpy2torch(train_label[:100][:, np.newaxis])
+y_true[y_true != 1] = 0
+print(X.shape, y_true.shape)
+
+for j in range(100):
+    optimizer.zero_grad()
+    y = net.forward(X)
+    loss = criterion(y, y_true)
+    loss.backward()
+    optimizer.step()
+    if j % 10 == 0:
+        print(loss.item())
+
+
+fig, axes = plt.subplots(2, 1)
+axes[0].plot(torch2numpy(y))
+axes[1].plot(torch2numpy(y_true))
+print()
+
+# %%
+pass
+
+# %%
+
+
+class EEGNet_classifier():
+    def __init__(self, net):
+        self.net = net
+        self.criterion = nn.BCELoss()
+        self.optimizer = optim.Adam(self.net.parameters(),
+                                    lr=0.001)
+        self.scheduler = optim.lr_scheduler.StepLR(self.optimizer,
+                                                   step_size=20,
+                                                   gamma=0.5)
+
+    def fit(self, X, y, quiet=True):
+        for epoch in range(100):
+            running_loss = 0
+            _skf = StratifiedKFold(n_splits=10, shuffle=True)
+            for more, less in _skf.split(X, y):
+                # Get data and labels
+                inputs = torch.from_numpy(X[more])
+                labels = torch.FloatTensor(np.array([y[more]]).T*1.0)
+
+                # Make sure positive and negative samples have the same number
+                inputs = inputs[:torch.sum(labels).type(torch.int16)*2]
+                labels = labels[:torch.sum(labels).type(torch.int16)*2]
+
+                # wrap them in Variable
+                inputs = Variable(inputs.cuda())
+                labels = Variable(labels.cuda())
+
+                # zero the parameter gradients
+                self.optimizer.zero_grad()
+
+                # forward + backward + optimize
+                outputs = self.net(inputs)
+                loss = self.criterion(outputs, labels)
+                loss.backward()
+
+                self.optimizer.step()
+
+                running_loss += loss.data
+
+            self.scheduler.step()
+
+            if not quiet:
+                if epoch % 10 == 0:
+                    print(f'Epoch {epoch}: {running_loss}')
+
+    def predict(self, X):
+        inputs = torch.from_numpy(X)
+        inputs = Variable(inputs.cuda())
+        return self.net(inputs)
+
+
+# %%
 
 plotly.offline.init_notebook_mode(connected=True)
 
@@ -130,6 +296,16 @@ class CV_split(object):
 
 
 # %%
+
+
+bands = dict(raw=(0.1, 13),
+             delta=(0.1, 3),
+             theta=(3.5, 7.5),
+             alpha=(7.5, 13))
+
+n_jobs = 48
+
+# %%
 for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
     # Load MEG data
     dm = DataManager(name)
@@ -150,20 +326,26 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
         # Recursive
         # Get current split
         split = cv.next_split(n_components)
-        train_epochs = split['includes']
-        test_epochs = split['excludes']
+        include_epochs = split['includes']
+        exclude_epochs = split['excludes']
 
-        # Re-label the events
-        train_epochs.events = relabel_events(train_epochs.events)
-        test_epochs.events = relabel_events(test_epochs.events)
-
-        # Select events of ['1', '2', '4']
-        train_epochs = train_epochs['1', '2', '4']
-        test_epochs = test_epochs['1', '2', '4']
-
-        # Get xdawn and clf
+        # Get scaler, xdawn and clf
         xdawn = split['xdawn']
         clf = split['clf']
+
+        # Re-label the events
+        include_epochs.events = relabel_events(include_epochs.events)
+        exclude_epochs.events = relabel_events(exclude_epochs.events)
+
+        labels.append(dict())
+
+        # for band in bands:
+        # Select events of ['1', '2', '4']
+        train_epochs = include_epochs['1', '2', '4']
+        test_epochs = exclude_epochs['1', '2', '4']
+
+        # train_epochs.filter(bands[band][0], bands[band][1], n_jobs=n_jobs)
+        # test_epochs.filter(bands[band][0], bands[band][1], n_jobs=n_jobs)
 
         # Xdawn preprocessing -----------------------------
         # Fit xdawn
@@ -174,9 +356,9 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
         train_epochs.apply_baseline((None, 0))
         test_epochs.apply_baseline((None, 0))
 
-        # Transfrom using xdawn
-        train_data = xdawn.transform(train_epochs)[:, :n_components]
-        test_data = xdawn.transform(test_epochs)[:, :n_components]
+        # Apply xdawn
+        train_data = xdawn.apply(train_epochs)['1'].get_data()
+        test_data = xdawn.apply(test_epochs)['1'].get_data()
 
         # Get labels and select events
         train_label = train_epochs.events[:, -1]
@@ -191,9 +373,11 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
 
         selects = [j for j, e in enumerate(times)
                    if all([e < tmax,
-                           e > tmin])]
+                           e >= tmin])]
         _train_data = train_data[:, :, selects]
         _test_data = test_data[:, :, selects]
+        # Size is [-1, 272, 100]
+        stophere
 
         # SVM MVPA ------------------------------------------
         # Fit svm
@@ -204,11 +388,11 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
         label = clf.predict(_test_data)
 
         # Restore labels
-        labels.append(dict(y_true=test_label,
-                           y_pred=label,))
+        labels[-1]['y_true'] = test_label
+        labels[-1]['y_pred'] = label
 
         # Print something to show MVPA in this folder is done
-        print('----------------------------------------------------------------------')
+        print(f'---- {name} ---------------------------')
         print(metrics.classification_report(y_true=labels[-1]['y_true'],
                                             y_pred=labels[-1]['y_pred'],))
 
@@ -225,6 +409,7 @@ print('All done.')
 for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
     print('-' * 80)
     print(name)
+
     try:
         frame = pd.read_json(f'{name}.json')
     except:

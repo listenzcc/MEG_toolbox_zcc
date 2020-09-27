@@ -10,40 +10,10 @@ import torch
 import torch.nn as nn
 DEVICE = 'cuda'
 
-
-# %%
-# Xdawn worker
-class MyXdawn(object):
-    # Customized Xdawn object
-    #   xdawn: The xdawn filter object
-    #   train_epochs: The epochs to train xdawn
-    #   __init__(train_epochs[, n_components=6]): Init method using [n_components]
-    #   fit(): Fit the xdawn train_epochs
-    #   transform([, epochs=None]): Transfrom [epochs] or train_epochs if [epochs] is None
-    #   apply([, epochs=None]): Apply xdawn to [epochs] or train_epochs if [epochs] is None
-
-    def __init__(self, n_components=6):
-        self.xdawn = mne.preprocessing.Xdawn(n_components=n_components)
-        print('MyXdawn initialized successfully')
-
-    def fit(self, train_epochs):
-        self.train_epochs = train_epochs
-        self.xdawn.fit(self.train_epochs)
-        print('MyXdawn fitted successfully')
-
-    def transform(self, epochs=None):
-        if epochs is None:
-            return self.xdawn.transform(self.train_epochs)
-        return self.xdawn.transform(epochs)
-
-    def apply(self, epochs=None):
-        if epochs is None:
-            return self.xdawn.apply(self.train_epochs)
-        return self.xdawn.apply(epochs)
-
-
 # %%
 # Local tools for pytorch
+
+
 def numpy2torch(array, dtype=np.float32, device=DEVICE):
     # Attach [array] to the type of torch
     return torch.from_numpy(array.astype(dtype)).to(device)
