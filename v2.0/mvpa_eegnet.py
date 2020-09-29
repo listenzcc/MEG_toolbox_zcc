@@ -46,59 +46,97 @@ def torch2numpy(tensor):
 class EEGNet(nn.Module):
     def __init__(self):
         super(EEGNet, self).__init__()
-        # self.T = 61
+
+        # ! Input size is (-1, 1, 100, 272)
 
         # Layer 1
-        self.conv1 = nn.Conv2d(1, 16, (1, 272), padding=0)
-        self.batchnorm1 = nn.BatchNorm2d(16, False)
+        self.padding1 = nn.ZeroPad2d((0, 0, 0, 0))
+        # ! Input size is (-1, 1, 100, 272)
+        self.conv1 = nn.Conv2d(1, 12, (1, 272), padding=0)
+        # ! Size is (-1, 12, 100, 1)
+        self.batchnorm1 = nn.BatchNorm2d(12, False)
+        # Permute as (0, 3, 1, 2)
+        # ! Size is (-1, 1, 12, 100)
 
         # Layer 2
-        self.padding1 = nn.ZeroPad2d((16, 17, 1, 1))
-        self.conv2 = nn.Conv2d(1, 4, (2, 32))
+        self.padding2 = nn.ZeroPad2d((24, 25, 0, 0))
+        # ! Size is (-1, 1, 12, 149)
+        self.conv2 = nn.Conv2d(1, 4, (1, 50))
+        # ! Size is (-1, 4, 12, 100)
         self.batchnorm2 = nn.BatchNorm2d(4, False)
-        self.pooling2 = nn.MaxPool2d(2, 4)
+        self.pooling2 = nn.MaxPool2d((2, 5))
+        # ! Size is (-1, 4, 6, 20)
 
         # Layer 3
-        self.padding2 = nn.ZeroPad2d((2, 1, 4, 3))
-        self.conv3 = nn.Conv2d(4, 4, (8, 4))
+        self.padding3 = nn.ZeroPad2d((1, 2, 1, 2))
+        # ! Size is (-1, 4, 9, 23)
+        self.conv3 = nn.Conv2d(4, 4, (4, 4))
+        # ! Size is (-1, 4, 6, 20)
         self.batchnorm3 = nn.BatchNorm2d(4, False)
-        self.pooling3 = nn.MaxPool2d((2, 4))
+        self.pooling3 = nn.MaxPool2d((3, 2))
+        # ! Size is (-1, 4, 2, 10)
 
         # FC Layer
         # NOTE: This dimension will depend on the number of timestamps per sample in your data.
-        self.fc1 = nn.Linear(4 * 2 * 6, 1)
+        self.fc_input_num = 4 * 2 * 10
+        self.fc1 = nn.Linear(self.fc_input_num, 1)
 
-    def forward(self, x):
+    def predict(self, x):
+        return self.forward(x, dropout=0)
+
+    def forward(self, x, dropout=0.15):
         # Layer 1
+        x = self.padding1(x)
         x = F.elu(self.conv1(x))
         x = self.batchnorm1(x)
-        x = F.dropout(x, 0.25)
+        x = F.dropout(x, dropout)
         x = x.permute(0, 3, 1, 2)
 
         # Layer 2
-        x = self.padding1(x)
+        x = self.padding2(x)
         x = F.elu(self.conv2(x))
         x = self.batchnorm2(x)
-        x = F.dropout(x, 0.25)
+        x = F.dropout(x, dropout)
         x = self.pooling2(x)
 
         # Layer 3
-        x = self.padding2(x)
+        x = self.padding3(x)
         x = F.elu(self.conv3(x))
         x = self.batchnorm3(x)
-        x = F.dropout(x, 0.25)
+        x = F.dropout(x, dropout)
         x = self.pooling3(x)
 
         # FC Layer
-        # x = x.view(-1, 4*2*7)
-        x = x.view(-1, 4 * 2 * 6)
+        x = x.view(-1, self.fc_input_num)
         x = torch.sigmoid(self.fc1(x))
         return x
 
 
-# %%
+class TrainSessions(object):
+    def __init__(self, train_data, train_label):
+        self.data = train_data
+        self.label = train_label
+        self.idxs = dict(
+            targets=np.where(train_label == 1)[0],
+            far_non_targets=np.where(train_label == 2)[0],
+            near_non_targets=np.where(train_label == 4)[0]
+        )
+
+    def _shuffle(self):
+        for key in self.idxs:
+            np.random.shuffle(self.idxs[key])
+
+    def random(self, num=10):
+        selects = np.concatenate([self.idxs[e][:num]
+                                  for e in self.idxs])
+        return self.data[selects], self.label[selects]
+
+
 net = EEGNet().cuda()
-torchsummary.summary(net, input_size=(1, 100, 272))
+input_size = (1, 100, 272)
+print('-' * 80)
+print('Input size is {}, {}'.format(-1, input_size))
+torchsummary.summary(net, input_size=input_size)
 
 # %%
 criterion = nn.BCELoss()
@@ -108,26 +146,29 @@ optimizer = optim.Adam(net.parameters(),
 #                                       step_size=20,
 #                                       gamma=0.5)
 
-X = numpy2torch(_train_data[:100][:, np.newaxis, :].transpose([0, 1, 3, 2]))
-X *= 1e12
-y_true = numpy2torch(train_label[:100][:, np.newaxis])
-y_true[y_true != 1] = 0
-print(X.shape, y_true.shape)
+# tsession = TrainSessions(_train_data, train_label)
+# data, label = tsession.random()
 
-for j in range(100):
-    optimizer.zero_grad()
-    y = net.forward(X)
-    loss = criterion(y, y_true)
-    loss.backward()
-    optimizer.step()
-    if j % 10 == 0:
-        print(loss.item())
+# X = numpy2torch(data[:, np.newaxis, :].transpose([0, 1, 3, 2]))
+# # X *= 1e12
+# y_true = numpy2torch(label[:, np.newaxis])
+# y_true[y_true != 1] = 0
+# print(X.shape, y_true.shape)
+
+# for j in range(100):
+#     optimizer.zero_grad()
+#     y = net.forward(X)
+#     loss = criterion(y, y_true)
+#     loss.backward()
+#     optimizer.step()
+#     if j % 10 == 0:
+#         print(loss.item())
 
 
-fig, axes = plt.subplots(2, 1)
-axes[0].plot(torch2numpy(y))
-axes[1].plot(torch2numpy(y_true))
-print()
+# fig, axes = plt.subplots(2, 1)
+# axes[0].plot(torch2numpy(y))
+# axes[1].plot(torch2numpy(y_true))
+# print()
 
 # %%
 pass
@@ -377,15 +418,63 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
         _train_data = train_data[:, :, selects]
         _test_data = test_data[:, :, selects]
         # Size is [-1, 272, 100]
-        stophere
 
-        # SVM MVPA ------------------------------------------
-        # Fit svm
-        clf.fit(_train_data, train_label)
-        print('Clf training is done.')
+# %%
+# EEG net MVPA ------------------------------------------
+X_test = numpy2torch(
+    _test_data[:, np.newaxis, :].transpose([0, 1, 3, 2])) * 1e12
 
-        # Predict using svm
-        label = clf.predict(_test_data)
+y_test = numpy2torch(test_label[:, np.newaxis])
+y_test[y_test != 1] = 0
+
+# Fit net
+net = EEGNet().cuda()
+
+criterion = nn.BCELoss()
+optimizer = optim.Adam(net.parameters(),
+                        lr=0.001)
+scheduler = optim.lr_scheduler.StepLR(optimizer,
+                                      step_size=100,
+                                      gamma=0.8)
+
+tsession = TrainSessions(_train_data, train_label)
+for session_id in range(300):
+    data, label = tsession.random(num=100)
+    X = numpy2torch(
+        data[:, np.newaxis, :].transpose([0, 1, 3, 2])) * 1e12
+    y_true = numpy2torch(label[:, np.newaxis])
+    y_true[y_true != 1] = 0
+
+    for _ in range(1):
+        optimizer.zero_grad()
+        y = net.forward(X)
+        _y = net.forward(X_test)
+        _loss = criterion(_y, y_test)
+        loss = criterion(y, y_true)
+        loss.backward()
+        optimizer.step()
+        scheduler.step()
+
+    if session_id % 10 == 0:
+        print('{idx}, Loss: {loss:.6f}, test loss: {test_loss:.6f}'.format(
+            **dict(idx=session_id,
+        loss=loss.item(),
+        test_loss=_loss.item())))
+
+print('EEG net training is done.')
+
+# Predict using EEG net
+X = numpy2torch(
+    _test_data[:, np.newaxis, :].transpose([0, 1, 3, 2])) * 1e12
+y_true = test_label.copy()
+y_true[y_true != 1] = 0
+y = np.ravel(torch2numpy(net.predict(X)))
+y_pred = np.fix(y + 0.5)
+print(metrics.classification_report(y_true=y_true,
+                                    y_pred=y_pred))
+stophere
+
+# %%
 
         # Restore labels
         labels[-1]['y_true'] = test_label
@@ -397,7 +486,7 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
                                             y_pred=labels[-1]['y_pred'],))
 
     # Save labels of current [name]
-    frame = pd.DataFrame(labels)
+    frame=pd.DataFrame(labels)
     frame.to_json(f'{name}.json')
     print(f'{name} MVPA is done')
     # break
@@ -411,12 +500,12 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
     print(name)
 
     try:
-        frame = pd.read_json(f'{name}.json')
+        frame=pd.read_json(f'{name}.json')
     except:
         continue
 
-    y_true = np.concatenate(frame.y_true.to_list())
-    y_pred = np.concatenate(frame.y_pred.to_list())
+    y_true=np.concatenate(frame.y_true.to_list())
+    y_pred=np.concatenate(frame.y_pred.to_list())
     print('Classification report\n',
           metrics.classification_report(y_pred=y_pred, y_true=y_true))
     print('Confusion matrix\n',

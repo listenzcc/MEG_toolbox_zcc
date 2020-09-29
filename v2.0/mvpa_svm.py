@@ -174,8 +174,8 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
 
         # for band in bands:
         # Select events of ['1', '2', '4']
-        train_epochs = include_epochs['1', '2', '4']
-        test_epochs = exclude_epochs['1', '2', '4']
+        train_epochs = include_epochs['1', '2', '3', '4']
+        test_epochs = exclude_epochs['1', '2', '3', '4']
 
         # train_epochs.filter(bands[band][0], bands[band][1], n_jobs=n_jobs)
         # test_epochs.filter(bands[band][0], bands[band][1], n_jobs=n_jobs)
@@ -196,6 +196,10 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
         # Get labels and select events
         train_label = train_epochs.events[:, -1]
         test_label = test_epochs.events[:, -1]
+
+        # Relabel 4 to 2, to generate 2-classes situation
+        # train_label[train_label == 4] = 2
+        # test_label[test_label == 4] = 2
 
         # Just print something to show data have been prepared
         print(train_data.shape, train_label.shape,
@@ -229,7 +233,7 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
 
     # Save labels of current [name]
     frame = pd.DataFrame(labels)
-    frame.to_json(f'{name}.json')
+    frame.to_json(f'svm_4classes/{name}.json')
     print(f'{name} MVPA is done')
     # break
 
