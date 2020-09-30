@@ -25,8 +25,8 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
     except:
         continue
 
-    y_true = np.concatenate(frame.y_true.to_list())
-    y_pred = np.concatenate(frame.y_pred.to_list())
+    y_true = np.concatenate(frame.y_true.to_list()[0:1])
+    y_pred = np.concatenate(frame.y_pred.to_list()[0:1])
     print('Classification report\n',
           metrics.classification_report(y_pred=y_pred, y_true=y_true))
     print('Confusion matrix\n',

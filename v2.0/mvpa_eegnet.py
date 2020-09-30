@@ -43,75 +43,6 @@ def torch2numpy(tensor):
     return tensor.detach().cpu().numpy()
 
 
-class EEGNet(nn.Module):
-    def __init__(self):
-        super(EEGNet, self).__init__()
-
-        # ! Input size is (-1, 1, 100, 272)
-
-        # Layer 1
-        self.padding1 = nn.ZeroPad2d((0, 0, 0, 0))
-        # ! Input size is (-1, 1, 100, 272)
-        self.conv1 = nn.Conv2d(1, 12, (1, 272), padding=0)
-        # ! Size is (-1, 12, 100, 1)
-        self.batchnorm1 = nn.BatchNorm2d(12, False)
-        # Permute as (0, 3, 1, 2)
-        # ! Size is (-1, 1, 12, 100)
-
-        # Layer 2
-        self.padding2 = nn.ZeroPad2d((24, 25, 0, 0))
-        # ! Size is (-1, 1, 12, 149)
-        self.conv2 = nn.Conv2d(1, 4, (1, 50))
-        # ! Size is (-1, 4, 12, 100)
-        self.batchnorm2 = nn.BatchNorm2d(4, False)
-        self.pooling2 = nn.MaxPool2d((2, 5))
-        # ! Size is (-1, 4, 6, 20)
-
-        # Layer 3
-        self.padding3 = nn.ZeroPad2d((1, 2, 1, 2))
-        # ! Size is (-1, 4, 9, 23)
-        self.conv3 = nn.Conv2d(4, 4, (4, 4))
-        # ! Size is (-1, 4, 6, 20)
-        self.batchnorm3 = nn.BatchNorm2d(4, False)
-        self.pooling3 = nn.MaxPool2d((3, 2))
-        # ! Size is (-1, 4, 2, 10)
-
-        # FC Layer
-        # NOTE: This dimension will depend on the number of timestamps per sample in your data.
-        self.fc_input_num = 4 * 2 * 10
-        self.fc1 = nn.Linear(self.fc_input_num, 1)
-
-    def predict(self, x):
-        return self.forward(x, dropout=0)
-
-    def forward(self, x, dropout=0.15):
-        # Layer 1
-        x = self.padding1(x)
-        x = F.elu(self.conv1(x))
-        x = self.batchnorm1(x)
-        x = F.dropout(x, dropout)
-        x = x.permute(0, 3, 1, 2)
-
-        # Layer 2
-        x = self.padding2(x)
-        x = F.elu(self.conv2(x))
-        x = self.batchnorm2(x)
-        x = F.dropout(x, dropout)
-        x = self.pooling2(x)
-
-        # Layer 3
-        x = self.padding3(x)
-        x = F.elu(self.conv3(x))
-        x = self.batchnorm3(x)
-        x = F.dropout(x, dropout)
-        x = self.pooling3(x)
-
-        # FC Layer
-        x = x.view(-1, self.fc_input_num)
-        x = torch.sigmoid(self.fc1(x))
-        return x
-
-
 class TrainSessions(object):
     def __init__(self, train_data, train_label):
         self.data = train_data
@@ -127,105 +58,156 @@ class TrainSessions(object):
             np.random.shuffle(self.idxs[key])
 
     def random(self, num=10):
+        self._shuffle()
         selects = np.concatenate([self.idxs[e][:num]
                                   for e in self.idxs])
         return self.data[selects], self.label[selects]
 
 
+class OneHotVec(object):
+    # Onehot vector encoder and decoder
+    def __init__(self, coding={1: 0, 2: 1, 4: 2}):
+        # Init
+        # coding: coding table
+        self.coding = coding
+        # Generate inverse coding table
+        self.coding_inv = dict()
+        for c in coding:
+            self.coding_inv[coding[c]] = c
+        # num: The length of the onehot code
+        self.length = len(coding)
+
+    def encode(self, vec):
+        vec = np.ravel(vec)
+        # num: How many vectors to be encoded
+        num = len(vec)
+        # code: matrix size of num x self.length
+        code = np.zeros((num, self.length))
+        # Set up code
+        for j, v in enumerate(vec):
+            code[j, self.coding[v]] = 1
+        return code
+
+    def decode(self, code):
+        # num: How many codes to be decoded
+        num = len(code)
+        # vec: vector size of num
+        vec = np.zeros((num, 1))
+        # Set up vec
+        for j, v in enumerate(code):
+            vec[j] = self.coding_inv[np.where(v == max(v))[0][0]]
+        return vec
+
+
+class EEGNet(nn.Module):
+    def __init__(self):
+        super(EEGNet, self).__init__()
+        self.C = 272
+        self.T = 120
+        self.set_parameters()
+
+    def set_parameters(self):
+        # Layer 1
+        self.conv1 = nn.Conv2d(1, 25, (1, 5), padding=(0, 2))
+        self.conv11 = nn.Conv2d(25, 25, (272, 1), padding=(0, 0))
+        self.batchnorm1 = nn.BatchNorm2d(25, False)
+        self.pooling1 = nn.MaxPool2d(1, 2)
+
+        # Layer 2
+        self.conv2 = nn.Conv2d(25, 50, (1, 5), padding=(0, 2))
+        self.batchnorm2 = nn.BatchNorm2d(50, False)
+        self.pooling2 = nn.MaxPool2d(1, 2)
+
+        # Layer 3
+        self.conv3 = nn.Conv2d(50, 100, (1, 5), padding=(0, 2))
+        self.batchnorm3 = nn.BatchNorm2d(100, False)
+        self.pooling3 = nn.MaxPool2d(1, 2)
+
+        # Layer 4
+        self.conv4 = nn.Conv2d(100, 200, (1, 5), padding=(0, 2))
+        self.batchnorm4 = nn.BatchNorm2d(200, False)
+        self.pooling4 = nn.MaxPool2d(1, 2)
+
+        # FC layer
+        self.fc = nn.Linear(200 * 8, 3)
+
+    def predict(self, x):
+        return self.forward(x, dropout=0)
+
+    def max_norm(self):
+        # def max_norm(model, max_val=2, eps=1e-8):
+        #     for name, param in model.named_parameters():
+        #         if 'bias' not in name:
+        #             norm = param.norm(2, dim=0, keepdim=True)
+        #             # desired = torch.clamp(norm, 0, max_val)
+        #             param = torch.clamp(norm, 0, max_val)
+        #             # param = param * (desired / (eps + norm))
+        eps = 1e-8
+        for name, param in self.named_parameters():
+            if 'bias' in name:
+                continue
+
+            max_val = 2
+            if any([name.startswith(e) for e in ['conv1', 'conv11', 'conv2', 'conv3', 'conv4']]):
+                norm = param.norm(2, dim=None, keepdim=True)
+                desired = torch.clamp(norm, 0, max_val)
+                param = param * desired / (eps + norm)
+                continue
+
+            max_val = 0.5
+            if name.startswith('fc'):
+                norm = param.norm(2, dim=None, keepdim=True)
+                desired = torch.clamp(norm, 0, max_val)
+                param = param * desired / (eps + norm)
+                continue
+
+    def forward(self, x, dropout=0.25):
+        # Layer 1
+        x = self.conv1(x)
+        x = self.conv11(x)
+        x = self.batchnorm1(x)
+        x = F.elu(x)
+        x = self.pooling1(x)
+
+        x = F.dropout(x, dropout)
+
+        # Layer 2
+        x = self.conv2(x)
+        x = self.batchnorm2(x)
+        x = F.elu(x)
+        x = self.pooling2(x)
+
+        x = F.dropout(x, dropout)
+
+        # Layer 3
+        x = self.conv3(x)
+        x = self.batchnorm3(x)
+        x = F.elu(x)
+        x = self.pooling3(x)
+
+        x = F.dropout(x, dropout)
+
+        # Layer 4
+        x = self.conv4(x)
+        x = self.batchnorm4(x)
+        x = F.elu(x)
+        x = self.pooling4(x)
+
+        x = F.dropout(x, dropout)
+
+        # FC Layer
+        x = x.view(-1, 200 * 8)
+        x = self.fc(x)
+        x = F.softmax(x)
+
+        return x
+
+
 net = EEGNet().cuda()
-input_size = (1, 100, 272)
+input_size = (1, 272, 120)
 print('-' * 80)
 print('Input size is {}, {}'.format(-1, input_size))
 torchsummary.summary(net, input_size=input_size)
-
-# %%
-criterion = nn.BCELoss()
-optimizer = optim.Adam(net.parameters(),
-                       lr=0.01)
-# scheduler = optim.lr_scheduler.StepLR(optimizer,
-#                                       step_size=20,
-#                                       gamma=0.5)
-
-# tsession = TrainSessions(_train_data, train_label)
-# data, label = tsession.random()
-
-# X = numpy2torch(data[:, np.newaxis, :].transpose([0, 1, 3, 2]))
-# # X *= 1e12
-# y_true = numpy2torch(label[:, np.newaxis])
-# y_true[y_true != 1] = 0
-# print(X.shape, y_true.shape)
-
-# for j in range(100):
-#     optimizer.zero_grad()
-#     y = net.forward(X)
-#     loss = criterion(y, y_true)
-#     loss.backward()
-#     optimizer.step()
-#     if j % 10 == 0:
-#         print(loss.item())
-
-
-# fig, axes = plt.subplots(2, 1)
-# axes[0].plot(torch2numpy(y))
-# axes[1].plot(torch2numpy(y_true))
-# print()
-
-# %%
-pass
-
-# %%
-
-
-class EEGNet_classifier():
-    def __init__(self, net):
-        self.net = net
-        self.criterion = nn.BCELoss()
-        self.optimizer = optim.Adam(self.net.parameters(),
-                                    lr=0.001)
-        self.scheduler = optim.lr_scheduler.StepLR(self.optimizer,
-                                                   step_size=20,
-                                                   gamma=0.5)
-
-    def fit(self, X, y, quiet=True):
-        for epoch in range(100):
-            running_loss = 0
-            _skf = StratifiedKFold(n_splits=10, shuffle=True)
-            for more, less in _skf.split(X, y):
-                # Get data and labels
-                inputs = torch.from_numpy(X[more])
-                labels = torch.FloatTensor(np.array([y[more]]).T*1.0)
-
-                # Make sure positive and negative samples have the same number
-                inputs = inputs[:torch.sum(labels).type(torch.int16)*2]
-                labels = labels[:torch.sum(labels).type(torch.int16)*2]
-
-                # wrap them in Variable
-                inputs = Variable(inputs.cuda())
-                labels = Variable(labels.cuda())
-
-                # zero the parameter gradients
-                self.optimizer.zero_grad()
-
-                # forward + backward + optimize
-                outputs = self.net(inputs)
-                loss = self.criterion(outputs, labels)
-                loss.backward()
-
-                self.optimizer.step()
-
-                running_loss += loss.data
-
-            self.scheduler.step()
-
-            if not quiet:
-                if epoch % 10 == 0:
-                    print(f'Epoch {epoch}: {running_loss}')
-
-    def predict(self, X):
-        inputs = torch.from_numpy(X)
-        inputs = Variable(inputs.cuda())
-        return self.net(inputs)
-
 
 # %%
 
@@ -378,8 +360,6 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
         include_epochs.events = relabel_events(include_epochs.events)
         exclude_epochs.events = relabel_events(exclude_epochs.events)
 
-        labels.append(dict())
-
         # for band in bands:
         # Select events of ['1', '2', '4']
         train_epochs = include_epochs['1', '2', '4']
@@ -410,75 +390,71 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
               test_data.shape, test_label.shape)
 
         times = train_epochs.times
-        tmin, tmax = 0, 1
+        tmin, tmax = -0.2, 1
 
         selects = [j for j, e in enumerate(times)
                    if all([e < tmax,
                            e >= tmin])]
         _train_data = train_data[:, :, selects]
         _test_data = test_data[:, :, selects]
-        # Size is [-1, 272, 100]
+        # Size is [-1, 272, 120]
 
-# %%
-# EEG net MVPA ------------------------------------------
-X_test = numpy2torch(
-    _test_data[:, np.newaxis, :].transpose([0, 1, 3, 2])) * 1e12
+        # EEG net MVPA ------------------------------------------
+        # _train_data = np.load('_train_data.npy')
+        # _test_data = np.load('_test_data.npy')
+        # train_label = np.load('train_label.npy')
+        # test_label = np.load('test_label.npy')
 
-y_test = numpy2torch(test_label[:, np.newaxis])
-y_test[y_test != 1] = 0
+        ohv = OneHotVec()
+        _max, _min = np.max(_train_data), np.min(_train_data)
 
-# Fit net
-net = EEGNet().cuda()
+        X_test = numpy2torch(
+            (_test_data[:, np.newaxis, :] + _min) / (_max - _min))
+        y_test = numpy2torch(ohv.encode(test_label[:, np.newaxis]))
 
-criterion = nn.BCELoss()
-optimizer = optim.Adam(net.parameters(),
-                        lr=0.001)
-scheduler = optim.lr_scheduler.StepLR(optimizer,
-                                      step_size=100,
-                                      gamma=0.8)
+        # Fit net
+        net = EEGNet().cuda()
 
-tsession = TrainSessions(_train_data, train_label)
-for session_id in range(300):
-    data, label = tsession.random(num=100)
-    X = numpy2torch(
-        data[:, np.newaxis, :].transpose([0, 1, 3, 2])) * 1e12
-    y_true = numpy2torch(label[:, np.newaxis])
-    y_true[y_true != 1] = 0
+        criterion = nn.MSELoss()
+        optimizer = optim.Adam(net.parameters(),
+                               lr=0.001)
+        scheduler = optim.lr_scheduler.StepLR(
+            optimizer, step_size=50, gamma=0.8)
 
-    for _ in range(1):
-        optimizer.zero_grad()
-        y = net.forward(X)
-        _y = net.forward(X_test)
-        _loss = criterion(_y, y_test)
-        loss = criterion(y, y_true)
-        loss.backward()
-        optimizer.step()
-        scheduler.step()
+        tsession = TrainSessions(_train_data, train_label)
+        for session_id in range(500):
+            data, label = tsession.random(num=100)
+            X = numpy2torch((data[:, np.newaxis, :] + _min) / (_max - _min))
+            y_true = numpy2torch(ohv.encode(label[:, np.newaxis]))
 
-    if session_id % 10 == 0:
-        print('{idx}, Loss: {loss:.6f}, test loss: {test_loss:.6f}'.format(
-            **dict(idx=session_id,
-        loss=loss.item(),
-        test_loss=_loss.item())))
+            for _ in range(1):
+                optimizer.zero_grad()
+                y = net.forward(X)
+                _y = net.forward(X_test)
+                _loss = criterion(_y, y_test)
+                loss = criterion(y, y_true)
+                loss.backward()
+                optimizer.step()
+                scheduler.step()
+                net.max_norm()
 
-print('EEG net training is done.')
+            if session_id % 10 == 0:
+                print('{idx}, Loss: {loss:.6f}, test loss: {test_loss:.6f}'.format(
+                    **dict(idx=session_id,
+                           loss=loss.item(),
+                           test_loss=_loss.item())))
 
-# Predict using EEG net
-X = numpy2torch(
-    _test_data[:, np.newaxis, :].transpose([0, 1, 3, 2])) * 1e12
-y_true = test_label.copy()
-y_true[y_true != 1] = 0
-y = np.ravel(torch2numpy(net.predict(X)))
-y_pred = np.fix(y + 0.5)
-print(metrics.classification_report(y_true=y_true,
-                                    y_pred=y_pred))
-stophere
+        print('EEG net training is done.')
 
-# %%
+        # Predict using EEG net
+        y = torch2numpy(net.predict(X_test))
+        y_dict = dict(y_true=ohv.decode(
+            torch2numpy(y_test)), y_pred=ohv.decode(y))
+        print('Classification report\n', metrics.classification_report(**y_dict))
+        print('Confusion matrix\n', metrics.confusion_matrix(**y_dict))
 
         # Restore labels
-        labels[-1]['y_true'] = test_label
-        labels[-1]['y_pred'] = label
+        labels.append(y_dict)
 
         # Print something to show MVPA in this folder is done
         print(f'---- {name} ---------------------------')
@@ -486,7 +462,7 @@ stophere
                                             y_pred=labels[-1]['y_pred'],))
 
     # Save labels of current [name]
-    frame=pd.DataFrame(labels)
+    frame = pd.DataFrame(labels)
     frame.to_json(f'{name}.json')
     print(f'{name} MVPA is done')
     # break
@@ -500,12 +476,12 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
     print(name)
 
     try:
-        frame=pd.read_json(f'{name}.json')
+        frame = pd.read_json(f'{name}.json')
     except:
         continue
 
-    y_true=np.concatenate(frame.y_true.to_list())
-    y_pred=np.concatenate(frame.y_pred.to_list())
+    y_true = np.concatenate(frame.y_true.to_list())
+    y_pred = np.concatenate(frame.y_pred.to_list())
     print('Classification report\n',
           metrics.classification_report(y_pred=y_pred, y_true=y_true))
     print('Confusion matrix\n',
