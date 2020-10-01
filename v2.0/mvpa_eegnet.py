@@ -370,7 +370,7 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
 
         # Xdawn preprocessing -----------------------------
         # Fit xdawn
-        xdawn.fit(train_epochs)
+        # xdawn.fit(train_epochs)
 
         # Apply baseline
         # !!! Make sure applying baseline **AFTER** xdawn fitting
@@ -378,8 +378,11 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
         test_epochs.apply_baseline((None, 0))
 
         # Apply xdawn
-        train_data = xdawn.apply(train_epochs)['1'].get_data()
-        test_data = xdawn.apply(test_epochs)['1'].get_data()
+        # no_xdawn
+        train_data = train_epochs.get_data()
+        test_data = test_epochs.get_data()
+        # train_data = xdawn.apply(train_epochs)['1'].get_data()
+        # test_data = xdawn.apply(test_epochs)['1'].get_data()
 
         # Get labels and select events
         train_label = train_epochs.events[:, -1]
@@ -407,7 +410,6 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
 
         ohv = OneHotVec()
         _max, _min = np.max(_train_data), np.min(_train_data)
-
         X_test = numpy2torch(
             (_test_data[:, np.newaxis, :] + _min) / (_max - _min))
         y_test = numpy2torch(ohv.encode(test_label[:, np.newaxis]))
@@ -448,10 +450,11 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
 
         # Predict using EEG net
         y = torch2numpy(net.predict(X_test))
-        y_dict = dict(y_true=ohv.decode(
-            torch2numpy(y_test)), y_pred=ohv.decode(y))
-        print('Classification report\n', metrics.classification_report(**y_dict))
-        print('Confusion matrix\n', metrics.confusion_matrix(**y_dict))
+        y_dict = dict(y_true=ohv.decode(torch2numpy(y_test)),
+                      y_pred=ohv.decode(y),
+                      y_prob=y)
+        # print('Classification report\n', metrics.classification_report(**y_dict))
+        # print('Confusion matrix\n', metrics.confusion_matrix(**y_dict))
 
         # Restore labels
         labels.append(y_dict)
@@ -463,7 +466,7 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
 
     # Save labels of current [name]
     frame = pd.DataFrame(labels)
-    frame.to_json(f'{name}.json')
+    frame.to_json(f'no_xdawn_eegnet/{name}.json')
     print(f'{name} MVPA is done')
     # break
 
