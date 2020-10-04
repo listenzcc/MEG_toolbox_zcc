@@ -66,7 +66,7 @@ class TrainSessions(object):
 
 class OneHotVec(object):
     # Onehot vector encoder and decoder
-    def __init__(self, coding={1: 0, 2: 1, 4: 2}):
+    def __init__(self, coding={1: 0, 2: 1}):  # , 3: 3, 4: 2}):
         # Init
         # coding: coding table
         self.coding = coding
@@ -129,7 +129,7 @@ class EEGNet(nn.Module):
         self.pooling4 = nn.MaxPool2d(1, 2)
 
         # FC layer
-        self.fc = nn.Linear(200 * 8, 3)
+        self.fc = nn.Linear(200 * 8, 2)
 
     def predict(self, x):
         return self.forward(x, dropout=0)
@@ -387,6 +387,8 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
         # Get labels and select events
         train_label = train_epochs.events[:, -1]
         test_label = test_epochs.events[:, -1]
+        train_label[train_label == 4] = 2
+        test_label[test_label == 4] = 2
 
         # Just print something to show data have been prepared
         print(train_data.shape, train_label.shape,
@@ -466,7 +468,7 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
 
     # Save labels of current [name]
     frame = pd.DataFrame(labels)
-    frame.to_json(f'no_xdawn_eegnet/{name}.json')
+    frame.to_json(f'no_xdawn_eegnet_2classes/{name}.json')
     print(f'{name} MVPA is done')
     # break
 
@@ -474,21 +476,21 @@ print('All done.')
 
 # %%
 
-for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
-    print('-' * 80)
-    print(name)
+# for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
+#     print('-' * 80)
+#     print(name)
 
-    try:
-        frame = pd.read_json(f'{name}.json')
-    except:
-        continue
+#     try:
+#         frame = pd.read_json(f'{name}.json')
+#     except:
+#         continue
 
-    y_true = np.concatenate(frame.y_true.to_list())
-    y_pred = np.concatenate(frame.y_pred.to_list())
-    print('Classification report\n',
-          metrics.classification_report(y_pred=y_pred, y_true=y_true))
-    print('Confusion matrix\n',
-          metrics.confusion_matrix(y_pred=y_pred, y_true=y_true))
+#     y_true = np.concatenate(frame.y_true.to_list())
+#     y_pred = np.concatenate(frame.y_pred.to_list())
+#     print('Classification report\n',
+#           metrics.classification_report(y_pred=y_pred, y_true=y_true))
+#     print('Confusion matrix\n',
+#           metrics.confusion_matrix(y_pred=y_pred, y_true=y_true))
 
 
 # %%
