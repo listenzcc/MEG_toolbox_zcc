@@ -50,7 +50,8 @@ class TrainSessions(object):
         self.idxs = dict(
             targets=np.where(train_label == 1)[0],
             far_non_targets=np.where(train_label == 2)[0],
-            near_non_targets=np.where(train_label == 4)[0]
+            near_non_targets=np.where(train_label == 4)[0],
+            button=np.where(train_label == 3)[0]
         )
 
     def _shuffle(self):
@@ -66,7 +67,7 @@ class TrainSessions(object):
 
 class OneHotVec(object):
     # Onehot vector encoder and decoder
-    def __init__(self, coding={1: 0, 2: 1}):  # , 3: 3, 4: 2}):
+    def __init__(self, coding={1: 0, 2: 1, 3: 3, 4: 2}):
         # Init
         # coding: coding table
         self.coding = coding
@@ -362,8 +363,8 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
 
         # for band in bands:
         # Select events of ['1', '2', '4']
-        train_epochs = include_epochs['1', '2', '4']
-        test_epochs = exclude_epochs['1', '2', '4']
+        train_epochs = include_epochs['1', '2', '3', '4']
+        test_epochs = exclude_epochs['1', '2', '3', '4']
 
         # train_epochs.filter(bands[band][0], bands[band][1], n_jobs=n_jobs)
         # test_epochs.filter(bands[band][0], bands[band][1], n_jobs=n_jobs)
@@ -468,7 +469,7 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
 
     # Save labels of current [name]
     frame = pd.DataFrame(labels)
-    frame.to_json(f'no_xdawn_eegnet_2classes/{name}.json')
+    frame.to_json(f'no_xdawn_eegnet_4classes/{name}.json')
     print(f'{name} MVPA is done')
     # break
 
