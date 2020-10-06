@@ -139,7 +139,7 @@ bands = dict(raw=(0.1, 13),
 n_jobs = 48
 
 # %%
-for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
+for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', 'MEG_S07', 'MEG_S08', 'MEG_S09', 'MEG_S10']:
     # Load MEG data
     dm = DataManager(name)
     dm.load_epochs(recompute=False)
@@ -174,8 +174,8 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
 
         # for band in bands:
         # Select events of ['1', '2', '4']
-        train_epochs = include_epochs['1', '2', '3', '4']
-        test_epochs = exclude_epochs['1', '2', '3', '4']
+        train_epochs = include_epochs['1', '2', '4']
+        test_epochs = exclude_epochs['1', '2', '4']
 
         # train_epochs.filter(bands[band][0], bands[band][1], n_jobs=n_jobs)
         # test_epochs.filter(bands[band][0], bands[band][1], n_jobs=n_jobs)
@@ -233,7 +233,7 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
 
     # Save labels of current [name]
     frame = pd.DataFrame(labels)
-    frame.to_json(f'svm_4classes/{name}.json')
+    frame.to_json(f'svm_3classes/{name}.json')
     print(f'{name} MVPA is done')
     # break
 
