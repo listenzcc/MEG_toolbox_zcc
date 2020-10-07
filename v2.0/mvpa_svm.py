@@ -198,8 +198,8 @@ for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', '
         test_label = test_epochs.events[:, -1]
 
         # Relabel 4 to 2, to generate 2-classes situation
-        # train_label[train_label == 4] = 2
-        # test_label[test_label == 4] = 2
+        train_label[train_label == 4] = 2
+        test_label[test_label == 4] = 2
 
         # Just print something to show data have been prepared
         print(train_data.shape, train_label.shape,
@@ -233,7 +233,7 @@ for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', '
 
     # Save labels of current [name]
     frame = pd.DataFrame(labels)
-    frame.to_json(f'svm_3classes/{name}.json')
+    frame.to_json(f'svm_2classes/{name}.json')
     print(f'{name} MVPA is done')
     # break
 
