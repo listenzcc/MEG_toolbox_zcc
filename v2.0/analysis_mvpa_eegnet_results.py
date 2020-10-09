@@ -40,9 +40,9 @@ for subject in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06'
         # Calculate y_pred of eegnet
         y_pred_net = y_true * 0 + 2
         y_pred_net[y_prob_net[:, 0] > 0.9] = 1
-        y_pred_net[np.all([y_prob_net[:, 0] < 0.9,
-                           y_prob_net[:, 1] < y_prob_net[:, 2]],
-                          axis=0)] = 4
+        # y_pred_net[np.all([y_prob_net[:, 0] < 0.9,
+        #                    y_prob_net[:, 1] < y_prob_net[:, 2]],
+        #                   axis=0)] = 4
 
         confuse_net = metrics.confusion_matrix(
             y_true, y_pred_net, normalize='true')
