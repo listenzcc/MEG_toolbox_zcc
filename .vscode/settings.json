@@ -4,6 +4,7 @@
         "Jupyter",
         "Toeplitz",
         "Vectorizer",
+        "cmat",
         "corrcoef",
         "entr",
         "ipython",

@@ -67,7 +67,7 @@ class TrainSessions(object):
 
 class OneHotVec(object):
     # Onehot vector encoder and decoder
-    def __init__(self, coding={1: 0, 2: 1}):  # , 4: 2}):
+    def __init__(self, coding={1: 0, 2: 1, 4: 2}):
         # Init
         # coding: coding table
         self.coding = coding
@@ -130,7 +130,7 @@ class EEGNet(nn.Module):
         self.pooling4 = nn.MaxPool2d(1, 2)
 
         # FC layer
-        self.fc = nn.Linear(200 * 8, 2)
+        self.fc = nn.Linear(200 * 8, 3)
 
     def predict(self, x):
         return self.forward(x, dropout=0)
@@ -161,6 +161,12 @@ class EEGNet(nn.Module):
                 desired = torch.clamp(norm, 0, max_val)
                 param = param * desired / (eps + norm)
                 continue
+
+    def feature_1(self, x):
+        x = self.conv1(x)
+        x = self.conv11(x)
+        x = self.batchnorm1(x)
+        return x
 
     def forward(self, x, dropout=0.25):
         # Layer 1
@@ -332,6 +338,7 @@ n_jobs = 48
 # %%
 for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', 'MEG_S07', 'MEG_S08', 'MEG_S09', 'MEG_S10']:
     # Load MEG data
+    name = 'MEG_S02'
     dm = DataManager(name)
     dm.load_epochs(recompute=False)
 
@@ -388,8 +395,8 @@ for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', '
         # Get labels and select events
         train_label = train_epochs.events[:, -1]
         test_label = test_epochs.events[:, -1]
-        train_label[train_label == 4] = 2
-        test_label[test_label == 4] = 2
+        # train_label[train_label == 4] = 2
+        # test_label[test_label == 4] = 2
 
         # Just print something to show data have been prepared
         print(train_data.shape, train_label.shape,
@@ -450,6 +457,7 @@ for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', '
                            test_loss=_loss.item())))
 
         print('EEG net training is done.')
+        stophere
 
         # Predict using EEG net
         y = torch2numpy(net.predict(X_test))
@@ -469,65 +477,36 @@ for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', '
 
     # Save labels of current [name]
     frame = pd.DataFrame(labels)
-    frame.to_json(f'no_xdawn_eegnet_2classes/{name}.json')
+    frame.to_json(f'no_xdawn_eegnet_3classes/{name}.json')
     print(f'{name} MVPA is done')
     # break
 
 print('All done.')
 
 # %%
+net
 
-# for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
-#     print('-' * 80)
-#     print(name)
-
-#     try:
-#         frame = pd.read_json(f'{name}.json')
-#     except:
-#         continue
-
-#     y_true = np.concatenate(frame.y_true.to_list())
-#     y_pred = np.concatenate(frame.y_pred.to_list())
-#     print('Classification report\n',
-#           metrics.classification_report(y_pred=y_pred, y_true=y_true))
-#     print('Confusion matrix\n',
-#           metrics.confusion_matrix(y_pred=y_pred, y_true=y_true))
+# %%
+for c in net.conv11.parameters():
+    break
+# %%
+c = torch2numpy(c)
+c = c[:, :, :, 0]
+c.shape
 
 
 # %%
-# plot([dict(y=y_true, name='True'),
-#       dict(y=2-y_pred, name='Pred')])
+evoked = test_epochs['1'].average()
+times = evoked.times
+evoked.data[:, 0] = c[0, 0]
+evoked.plot_topomap(times=[-0.2])
+# %%
+X.shape
+# %%
+X[:100].shape
 
 # %%
-# epochs_1, epochs_2 = dm.leave_one_session_out(includes=[1, 3, 5],
-#                                               excludes=[2, 4, 6])
-# epochs_1, epochs_2
+f = net.feature_1(X[:100])
+f.shape
 
-# # %%
-# event = '2'
-# epochs = epochs_1[event]
-# epochs.filter(l_freq=0.1, h_freq=7, n_jobs=48)
-
-# epochs_1[event].average().plot_joint(title=event)
-# print()
-
-# epochs.average().plot_joint(title=event)
-# print()
-
-# # %%
-# xdawn = mne.preprocessing.Xdawn(n_components=6)
-# xdawn.fit(epochs_1)
-# xdawn_epochs_1 = xdawn.apply(epochs_1)
-# xdawn_epochs_2 = xdawn.apply(epochs_2)
-# xdawn_epochs_1, xdawn_epochs_2
-
-# # %%
-# for event in ['1', '2', '3']:
-#     epochs_1[event].average().plot_joint(title=event)
-#     xdawn_epochs_1['3'][event].average().plot_joint(title=event)
-# print()
-# # %%
-# help(xdawn.apply)
-# # %%
-# xdawn.apply(epochs_1, ['1', '2'])
-# # %%
+# %%
