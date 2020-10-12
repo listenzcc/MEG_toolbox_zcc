@@ -2,6 +2,8 @@
 # Aim: Calculate MVPA baseline using EEG net
 
 # %%
+from sklearn.manifold import TSNE
+import seaborn as sns
 from sklearn.model_selection import StratifiedKFold
 import torch.optim as optim
 
@@ -506,7 +508,67 @@ X.shape
 X[:100].shape
 
 # %%
-f = net.feature_1(X[:100])
-f.shape
+times = test_epochs.times[:120][10:-10]
+# Compute feature on randomized data [X]
+data, label = tsession.random(num=100)
+X = numpy2torch((data[:, np.newaxis, :] + _min) / (_max - _min))
 
+f = net.feature_1(X)
+feature = torch2numpy(f)
+
+label_names = dict(
+    Target=1,
+    Far=2,
+    Near=4
+)
+
+dfs = []
+for j, name in enumerate(label_names):
+    averaged_feature = np.squeeze(
+        np.mean(feature[label == label_names[name]], axis=0)).transpose()[10:-10]
+    df = pd.DataFrame(averaged_feature)
+    df['times'] = times
+    df['label'] = name
+    dfs.append(df)
+
+df = pd.concat(dfs, axis=0)
+
+fig, axes = plt.subplots(5, 5, figsize=(12, 12), dpi=300)
+axes = np.ravel(axes)
+for y in range(25):
+    ax = axes[y]
+    sns.lineplot(data=df, x='times', y=y, hue='label',
+                 ax=ax, legend=False)
+    # ax.set_aspect(1)
+
+
+fig.tight_layout()
+fig.savefig('channels_averaged.png')
+print('Done')
+
+
+# %%
+ftr = feature.copy()
+
+fig, axes = plt.subplots(5, 5, figsize=(12, 12), dpi=300)
+axes = np.ravel(axes)
+
+for j in range(25):
+    print(j)
+    x = np.squeeze(ftr[:, j])
+
+    tsne = TSNE(n_components=2)
+    x_tsne = tsne.fit_transform(x)
+    x_tsne.shape
+
+    df = pd.DataFrame(x_tsne)
+    df.columns = ['x', 'y']
+    t = ['', 'a', 'b', '', 'c']
+    df['label'] = [t[e] for e in label]
+
+    ax = axes[j]
+    sns.scatterplot(data=df, x='x', y='y', hue='label', legend=False, ax=ax)
+    ax.set_title(j)
+
+fig.tight_layout()
 # %%
