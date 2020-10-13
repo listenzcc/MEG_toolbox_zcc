@@ -9,3 +9,4 @@ private
 *.json
 *.log
 *.csv
+*.ipynb_checkpoints
