@@ -22,7 +22,7 @@ for subject in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06'
     print(subject)
 
     # Read json file
-    path_svm = os.path.join('svm_3classes', f'{subject}.json')
+    path_svm = os.path.join('svm_3classes_25components', f'{subject}.json')
     path_net = os.path.join('no_xdawn_eegnet_3classes', f'{subject}.json')
     frame_svm = pd.read_json(path_svm)
     frame_net = pd.read_json(path_net)
@@ -152,8 +152,9 @@ for j, name in enumerate(['recall', 'precision', 'score', 'accuracy']):
     # sns.swarmplot(x='subject', y=name, hue='method', data=summary, ax=ax)
     ax.set_title(name.title())
     ax.set_ylabel('')
+
 fig.tight_layout()
-fig.savefig('scatters_subjects.png')
+# fig.savefig('scatters_subjects.png')
 
 
 # %%
@@ -178,9 +179,7 @@ for j, method in enumerate(confusion_matrixes):
     ax.set_xlabel('Predict')
     ax.set_ylabel('Truth')
 
-    fig.tight_layout()
-    fig.savefig('confusion_matrix.png')
+fig.tight_layout()
+# fig.savefig('confusion_matrix.png')
 
-# %%
-help(anova.to_html)
 # %%

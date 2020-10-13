@@ -2,6 +2,8 @@
 # Aim: Calculate MVPA baseline using SVM
 
 # %%
+import seaborn as sns
+from sklearn.manifold import TSNE
 import mne
 import numpy as np
 import matplotlib.pyplot as plt
@@ -149,7 +151,7 @@ for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', '
     cv.reset()
 
     # MVPA parameters
-    n_components = 6
+    n_components = 25  # 6
 
     # Cross validation
     # y_pred and y_true will be stored in [labels]
@@ -197,9 +199,11 @@ for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', '
         train_label = train_epochs.events[:, -1]
         test_label = test_epochs.events[:, -1]
 
+        stophere
+
         # Relabel 4 to 2, to generate 2-classes situation
-        train_label[train_label == 4] = 2
-        test_label[test_label == 4] = 2
+        # train_label[train_label == 4] = 2
+        # test_label[test_label == 4] = 2
 
         # Just print something to show data have been prepared
         print(train_data.shape, train_label.shape,
@@ -233,7 +237,7 @@ for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', '
 
     # Save labels of current [name]
     frame = pd.DataFrame(labels)
-    frame.to_json(f'svm_2classes/{name}.json')
+    frame.to_json(f'svm_3classes_25components/{name}.json')
     print(f'{name} MVPA is done')
     # break
 
@@ -259,39 +263,48 @@ for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
 
 
 # %%
-# plot([dict(y=y_true, name='True'),
-#       dict(y=2-y_pred, name='Pred')])
+train_data.shape, train_label.shape, np.unique(train_label)
 
 # %%
-# epochs_1, epochs_2 = dm.leave_one_session_out(includes=[1, 3, 5],
-#                                               excludes=[2, 4, 6])
-# epochs_1, epochs_2
+d1 = train_data[train_label == 1]
+d2 = train_data[train_label == 2]
+d4 = train_data[train_label == 4]
+np.random.shuffle(d1)
+np.random.shuffle(d2)
+np.random.shuffle(d4)
 
-# # %%
-# event = '2'
-# epochs = epochs_1[event]
-# epochs.filter(l_freq=0.1, h_freq=7, n_jobs=48)
+data = np.concatenate([d1[:100], d2[:100], d4[:100]], axis=0)
+label = np.zeros((300))
+label[:100] = 1
+label[100:200] = 2
+label[200:] = 4
 
-# epochs_1[event].average().plot_joint(title=event)
-# print()
+data.shape, label.shape
 
-# epochs.average().plot_joint(title=event)
-# print()
+# %%
+plt.style.use('ggplot')
 
-# # %%
-# xdawn = mne.preprocessing.Xdawn(n_components=6)
-# xdawn.fit(epochs_1)
-# xdawn_epochs_1 = xdawn.apply(epochs_1)
-# xdawn_epochs_2 = xdawn.apply(epochs_2)
-# xdawn_epochs_1, xdawn_epochs_2
+fig, axes = plt.subplots(5, 5, figsize=(12, 12), dpi=300)
+axes = np.ravel(axes)
 
-# # %%
-# for event in ['1', '2', '3']:
-#     epochs_1[event].average().plot_joint(title=event)
-#     xdawn_epochs_1['3'][event].average().plot_joint(title=event)
-# print()
-# # %%
-# help(xdawn.apply)
-# # %%
-# xdawn.apply(epochs_1, ['1', '2'])
-# # %%
+for j in range(25):
+    tsne = TSNE(n_components=2)
+    x = np.squeeze(data[:, j])
+    x_tsne = tsne.fit_transform(x)
+
+    df = pd.DataFrame(x_tsne)
+    t = ['', 'a', 'b', '', 'c']
+    df['label'] = [t[int(e)] for e in label]
+
+    ax = axes[j]
+    sns.scatterplot(data=df, x=df[0], y=df[1],
+                    hue=df.label.to_list(), legend=False, ax=ax, alpha=0.6)
+
+    ax.set_xlabel('')
+    ax.set_ylabel('')
+    ax.set_title(j)
+
+fig.tight_layout()
+fig.savefig('components_distribution_25components.png')
+
+# %%

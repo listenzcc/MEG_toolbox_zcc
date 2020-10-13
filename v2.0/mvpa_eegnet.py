@@ -539,8 +539,9 @@ for y in range(25):
     ax = axes[y]
     sns.lineplot(data=df, x='times', y=y, hue='label',
                  ax=ax, legend=False)
-    # ax.set_aspect(1)
-
+    ax.set_title(y)
+    ax.set_xlabel('')
+    ax.set_ylabel('')
 
 fig.tight_layout()
 fig.savefig('channels_averaged.png')
@@ -567,8 +568,13 @@ for j in range(25):
     df['label'] = [t[e] for e in label]
 
     ax = axes[j]
-    sns.scatterplot(data=df, x='x', y='y', hue='label', legend=False, ax=ax)
+    sns.scatterplot(data=df, x='x', y='y', hue='label', legend=False, ax=ax, alpha=0.6)
     ax.set_title(j)
+    ax.set_xlabel('')
+    ax.set_ylabel('')
 
 fig.tight_layout()
+fig.savefig('channels_distribution.png')
+print('Done')
+
 # %%
