@@ -195,7 +195,10 @@ class DataManager(object):
         # Separate [includes] and [excludes] epochs
         include_epochs = mne.concatenate_epochs([self.epochs_list[j]
                                                  for j in includes])
-        exclude_epochs = mne.concatenate_epochs([self.epochs_list[j]
-                                                 for j in excludes])
+        if len(excludes) == 0:
+            exclude_epochs = None
+        else:
+            exclude_epochs = mne.concatenate_epochs([self.epochs_list[j]
+                                                     for j in excludes])
 
         return include_epochs, exclude_epochs
