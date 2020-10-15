@@ -151,7 +151,7 @@ for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', '
     cv.reset()
 
     # MVPA parameters
-    n_components = 25  # 6
+    n_components = 6
 
     # Cross validation
     # y_pred and y_true will be stored in [labels]
@@ -237,7 +237,7 @@ for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', '
 
     # Save labels of current [name]
     frame = pd.DataFrame(labels)
-    frame.to_json(f'svm_3classes_25components/{name}.json')
+    frame.to_json(f'svm_3classes/{name}.json')
     print(f'{name} MVPA is done')
     # break
 
@@ -282,12 +282,14 @@ label[200:] = 4
 data.shape, label.shape
 
 # %%
+# Plot tsne manifold
 plt.style.use('ggplot')
 
-fig, axes = plt.subplots(5, 5, figsize=(12, 12), dpi=300)
+fig, axes = plt.subplots(2, 3, figsize=(12, 8), dpi=300)
 axes = np.ravel(axes)
 
-for j in range(25):
+for j in range(6):
+    print(j)
     tsne = TSNE(n_components=2)
     x = np.squeeze(data[:, j])
     x_tsne = tsne.fit_transform(x)
@@ -305,6 +307,55 @@ for j in range(25):
     ax.set_title(j)
 
 fig.tight_layout()
-fig.savefig('components_distribution_25components.png')
+fig.savefig('components_distribution.png')
+
+# %%
+# Plot waveforms
+
+# Generate data
+# Setup label
+label_names = dict(
+    Target=1,
+    Far=2,
+    Near=4
+)
+
+# Load data into dataframe [df]
+times = train_epochs.times
+dfs = []
+for j, name in enumerate(label_names):
+    # Compute averaged waveform of each classes,
+    # restore it into [df],
+    # besides with label and times
+    wave = np.mean(data[label == label_names[name]], axis=0).transpose()
+    df = pd.DataFrame(wave)
+    df['times'] = times
+    df['label'] = name
+    # Append the [df] into [dfs] list
+    dfs.append(df)
+
+# Concatenate [dfs] into the big dataframe [df]
+df = pd.concat(dfs, axis=0)
+
+# Plot
+# Setup style
+plt.style.use('ggplot')
+
+# Init fig and axes
+fig, axes = plt.subplots(2, 3, figsize=(12, 8), dpi=300)
+axes = np.ravel(axes)
+
+# Draw
+for j in range(6):
+    print(j)
+    ax = axes[j]
+    sns.lineplot(data=df, x='times', y=j, hue='label',
+                 ax=ax, legend=False)
+    ax.set_title(j)
+    ax.set_xlabel('')
+    ax.set_ylabel('')
+
+fig.tight_layout()
+fig.savefig('components_averaged.png')
 
 # %%

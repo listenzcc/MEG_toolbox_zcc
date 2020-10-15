@@ -333,14 +333,15 @@ class CV_split(object):
 bands = dict(raw=(0.1, 13),
              delta=(0.1, 3),
              theta=(3.5, 7.5),
-             alpha=(7.5, 13))
+             alpha=(7.5, 13),
+             lower=(0.1, 7.5))
 
 n_jobs = 48
 
 # %%
 for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', 'MEG_S07', 'MEG_S08', 'MEG_S09', 'MEG_S10']:
     # Load MEG data
-    name = 'MEG_S02'
+    # name = 'MEG_S02'
     dm = DataManager(name)
     dm.load_epochs(recompute=False)
 
@@ -375,8 +376,9 @@ for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', '
         train_epochs = include_epochs['1', '2', '4']
         test_epochs = exclude_epochs['1', '2', '4']
 
-        # train_epochs.filter(bands[band][0], bands[band][1], n_jobs=n_jobs)
-        # test_epochs.filter(bands[band][0], bands[band][1], n_jobs=n_jobs)
+        l_freq, h_freq = bands['lower']
+        train_epochs.filter(l_freq, h_freq, n_jobs=n_jobs)
+        test_epochs.filter(l_freq, h_freq, n_jobs=n_jobs)
 
         # Xdawn preprocessing -----------------------------
         # Fit xdawn
@@ -459,7 +461,6 @@ for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', '
                            test_loss=_loss.item())))
 
         print('EEG net training is done.')
-        stophere
 
         # Predict using EEG net
         y = torch2numpy(net.predict(X_test))
@@ -479,11 +480,12 @@ for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', '
 
     # Save labels of current [name]
     frame = pd.DataFrame(labels)
-    frame.to_json(f'no_xdawn_eegnet_3classes/{name}.json')
+    frame.to_json(f'no_xdawn_eegnet_3classes_lowerband/{name}.json')
     print(f'{name} MVPA is done')
     # break
 
 print('All done.')
+stophere
 
 # %%
 net
@@ -568,7 +570,8 @@ for j in range(25):
     df['label'] = [t[e] for e in label]
 
     ax = axes[j]
-    sns.scatterplot(data=df, x='x', y='y', hue='label', legend=False, ax=ax, alpha=0.6)
+    sns.scatterplot(data=df, x='x', y='y', hue='label',
+                    legend=False, ax=ax, alpha=0.6)
     ax.set_title(j)
     ax.set_xlabel('')
     ax.set_ylabel('')
