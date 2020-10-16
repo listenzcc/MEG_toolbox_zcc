@@ -11,19 +11,24 @@ from scipy import stats
 from statsmodels.formula.api import ols
 from statsmodels.stats.anova import anova_lm
 
-
 # %%
-
+# Load and generate useful dataset
+# Summary of scores
 summary = pd.DataFrame(
     columns=['subject', 'folder', 'method', 'recall', 'precision', 'score', 'accuracy', 'confusion'])
 
+# Dataframe of roc curve
+df_roc = pd.DataFrame()
+
 for subject in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', 'MEG_S07', 'MEG_S08', 'MEG_S09', 'MEG_S10']:
+    # Load and generate for 10 subjects
     print('-' * 80)
     print(subject)
 
     # Read json file
-    path_svm = os.path.join('svm_3classes_25components', f'{subject}.json')
-    path_net = os.path.join('no_xdawn_eegnet_3classes', f'{subject}.json')
+    path_svm = os.path.join('svm_3classes', f'{subject}.json')
+    path_net = os.path.join(
+        'no_xdawn_eegnet_3classes', f'{subject}.json')
     frame_svm = pd.read_json(path_svm)
     frame_net = pd.read_json(path_net)
 
@@ -181,5 +186,3 @@ for j, method in enumerate(confusion_matrixes):
 
 fig.tight_layout()
 # fig.savefig('confusion_matrix.png')
-
-# %%
