@@ -173,27 +173,25 @@ def plot_waveform(epochs, prefix, bands=bands):
             title=band.title(), ts_args=dict(ylim=[-150, 150]))
         # We need 6 inches-width figure with 300 dpi
         fig.set_dpi(300)
-        fig.set_figwidth(6)
+        fig.set_figwidth(12)
         # Set ylim
         axes = fig.get_children()
-        axes[1].get_ylim()
-        axes[1].set_ylim([-200, 180])
+        # axes[1].get_ylim()
+        # axes[1].set_ylim([-200, 180])
         # Save fig
+        # fig.tight_layout()
         fig.savefig(f'{prefix}_{band}.png')
-
-    return fig
 
 
 # Epochs is the epochs to be plotted
 for epochs, prefix in zip([train_epochs['1'].copy(),
                            train_epochs['2'].copy(),
-                           applied['1']['1'].copy(),
-                           applied['1']['2'].copy()],
+                           train_epochs['4'].copy()],
                           ['raw_target',
                            'raw_nontarget',
-                           'xdawn_target',
-                           'xdawn_nontarget']):
+                           'raw_nearnontarget']):
 
-    fig = plot_waveform(epochs, prefix)
+    plot_waveform(epochs, prefix)
 
+print('Done.')
 # %%
