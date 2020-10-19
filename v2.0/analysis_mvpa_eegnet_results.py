@@ -26,9 +26,9 @@ for subject in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06'
     print(subject)
 
     # Read json file
-    path_svm = os.path.join('svm_3classes', f'{subject}.json')
+    path_svm = os.path.join('svm_2classes', f'{subject}.json')
     path_net = os.path.join(
-        'no_xdawn_eegnet_3classes', f'{subject}.json')
+        'no_xdawn_eegnet_2classes', f'{subject}.json')
     frame_svm = pd.read_json(path_svm)
     frame_net = pd.read_json(path_net)
 
@@ -46,9 +46,9 @@ for subject in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06'
         # Calculate y_pred of eegnet
         y_pred_net = y_true * 0 + 2
         y_pred_net[y_prob_net[:, 0] > 0.9] = 1
-        y_pred_net[np.all([y_prob_net[:, 0] < 0.9,
-                           y_prob_net[:, 1] < y_prob_net[:, 2]],
-                          axis=0)] = 4
+        # y_pred_net[np.all([y_prob_net[:, 0] < 0.9,
+        #                    y_prob_net[:, 1] < y_prob_net[:, 2]],
+        #                   axis=0)] = 4
 
         confusion_net = metrics.confusion_matrix(
             y_true, y_pred_net, normalize='true')
