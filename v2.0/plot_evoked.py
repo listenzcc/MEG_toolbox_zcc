@@ -173,7 +173,7 @@ def plot_waveform(epochs, prefix, bands=bands):
             title=band.title(), ts_args=dict(ylim=[-150, 150]))
         # We need 6 inches-width figure with 300 dpi
         fig.set_dpi(300)
-        fig.set_figwidth(12)
+        fig.set_figwidth(8)
         # Set ylim
         axes = fig.get_children()
         # axes[1].get_ylim()

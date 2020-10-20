@@ -36,7 +36,7 @@ for subject in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06'
     y_prob_net3_list = frame_net3.y_prob.to_list()
 
     for y_prob_net_list, method in zip([y_prob_net2_list, y_prob_net3_list],
-                                       ['2 classes', '3 classes']):
+                                       ['Binary', 'Ternary']):
 
         y_prob_net = np.concatenate(y_prob_net_list, axis=0)[:, 0]
         y_true = np.concatenate(y_true_list, axis=0)
@@ -77,7 +77,7 @@ display(df_roc)
 display(summary)
 
 with open('compare_eegnets.html', 'w') as f:
-    for method in ['2 classes', '3 classes']:
+    for method in ['Binary', 'Ternary']:
         print(method)
         description = summary.loc[summary.method == method].describe()
         display(description)
@@ -131,4 +131,13 @@ ax.set_ylim((0, 0.2))
 
 fig.tight_layout()
 fig.savefig('ROC.png')
+# %%
+# Draw an empty plot only for legends
+plt.style.use('ggplot')
+fig, ax = plt.subplots(1, 1, figsize=(6, 6), dpi=300)
+df = df_roc.iloc[:3]
+df.subject = ['Target', 'Far', 'Near']
+sns.lineplot(data=df, y='fpr',
+             x='thresholds', hue='subject', ax=ax)
+fig.savefig('legend.png')
 # %%

@@ -26,9 +26,9 @@ for subject in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06'
     print(subject)
 
     # Read json file
-    path_svm = os.path.join('svm_2classes', f'{subject}.json')
+    path_svm = os.path.join('svm_3classes', f'{subject}.json')
     path_net = os.path.join(
-        'no_xdawn_eegnet_2classes', f'{subject}.json')
+        'no_xdawn_eegnet_3classes', f'{subject}.json')
     frame_svm = pd.read_json(path_svm)
     frame_net = pd.read_json(path_net)
 
