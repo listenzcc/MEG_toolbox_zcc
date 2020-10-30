@@ -2,37 +2,20 @@
 # Aim: Calculate MVPA baseline using SVM
 
 # %%
-import seaborn as sns
-from sklearn.manifold import TSNE
 import mne
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import os
+import pandas as pd
+import seaborn as sns
 
-import sklearn
 from sklearn import svm
 from sklearn import metrics
+from sklearn.decomposition import PCA
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
-
-import pandas as pd
 
 from tools.data_manager import DataManager
-
-# %%
-import plotly
-import plotly.graph_objs as go
-
-plotly.offline.init_notebook_mode(connected=True)
-
-
-def plot(scatters, title='Title'):
-    if isinstance(scatters, dict):
-        scatters = [scatters]
-    layout = go.Layout(title=title)
-    data = [go.Scatter(**scatter) for scatter in scatters]
-    plotly.offline.iplot(dict(data=data,
-                              layout=layout))
 
 # %%
 
@@ -130,6 +113,23 @@ class CV_split(object):
                     clf=clf)
 
 
+class MEGSensorSelection(object):
+    # Down sample the MEG sensors,
+    # from [raw_num] to [new_num]
+    def __init__(self):
+        pass
+
+    def fit(self, raw_num=272, new_num=64):
+        self.raw_num = raw_num
+        self.new_num = new_num
+        permutation = np.random.permutation(range(self.raw_num)).astype(int)
+        self.drops = permutation[self.new_num:]
+
+    def transform(self, epochs):
+        ch_names = epochs.ch_names
+        epochs.drop_channels([ch_names[j] for j in self.drops])
+        return epochs
+
 # %%
 
 
@@ -141,8 +141,10 @@ bands = dict(raw=(0.1, 13),
 n_jobs = 48
 
 # %%
-for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', 'MEG_S07', 'MEG_S08', 'MEG_S09', 'MEG_S10']:
-    # Load MEG data
+modal = 'MEG'
+for subject in ['S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', 'S10']:
+    name = f'{modal}_{subject}'
+    # Load EEG data
     dm = DataManager(name)
     dm.load_epochs(recompute=False)
 
@@ -158,11 +160,21 @@ for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', '
     labels = []
 
     while cv.is_valid():
+        # Random select 64 sensors in MEG data
+        mss = MEGSensorSelection()
+        if modal == 'MEG':
+            mss.fit()
+
         # Recursive
         # Get current split
         split = cv.next_split(n_components)
         include_epochs = split['includes']
         exclude_epochs = split['excludes']
+
+        # Random select 64 sensors in MEG data
+        include_epochs = mss.transform(include_epochs)
+        exclude_epochs = mss.transform(exclude_epochs)
+        # stophere
 
         # Get scaler, xdawn and clf
         xdawn = split['xdawn']
@@ -199,11 +211,11 @@ for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', '
         train_label = train_epochs.events[:, -1]
         test_label = test_epochs.events[:, -1]
 
-        stophere
+        # stophere
 
         # Relabel 4 to 2, to generate 2-classes situation
-        # train_label[train_label == 4] = 2
-        # test_label[test_label == 4] = 2
+        train_label[train_label == 4] = 2
+        test_label[test_label == 4] = 2
 
         # Just print something to show data have been prepared
         print(train_data.shape, train_label.shape,
@@ -237,125 +249,13 @@ for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', '
 
     # Save labels of current [name]
     frame = pd.DataFrame(labels)
-    frame.to_json(f'svm_3classes/{name}.json')
+    folder_name = 'svm_2classes_meg64'
+    if not os.path.exists(folder_name):
+        os.mkdir(folder_name)
+    frame.to_json(os.path.join(folder_name, f'{name}.json'))
     print(f'{name} MVPA is done')
     # break
 
 print('All done.')
-
-# %%
-
-for name in ['MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05']:
-    print('-' * 80)
-    print(name)
-
-    try:
-        frame = pd.read_json(f'{name}.json')
-    except:
-        continue
-
-    y_true = np.concatenate(frame.y_true.to_list())
-    y_pred = np.concatenate(frame.y_pred.to_list())
-    print('Classification report\n',
-          metrics.classification_report(y_pred=y_pred, y_true=y_true))
-    print('Confusion matrix\n',
-          metrics.confusion_matrix(y_pred=y_pred, y_true=y_true))
-
-
-# %%
-train_data.shape, train_label.shape, np.unique(train_label)
-
-# %%
-d1 = train_data[train_label == 1]
-d2 = train_data[train_label == 2]
-d4 = train_data[train_label == 4]
-np.random.shuffle(d1)
-np.random.shuffle(d2)
-np.random.shuffle(d4)
-
-data = np.concatenate([d1[:100], d2[:100], d4[:100]], axis=0)
-label = np.zeros((300))
-label[:100] = 1
-label[100:200] = 2
-label[200:] = 4
-
-data.shape, label.shape
-
-# %%
-# Plot tsne manifold
-plt.style.use('ggplot')
-
-fig, axes = plt.subplots(2, 3, figsize=(12, 8), dpi=300)
-axes = np.ravel(axes)
-
-for j in range(6):
-    print(j)
-    tsne = TSNE(n_components=2)
-    x = np.squeeze(data[:, j])
-    x_tsne = tsne.fit_transform(x)
-
-    df = pd.DataFrame(x_tsne)
-    t = ['', 'a', 'b', '', 'c']
-    df['label'] = [t[int(e)] for e in label]
-
-    ax = axes[j]
-    sns.scatterplot(data=df, x=df[0], y=df[1],
-                    hue=df.label.to_list(), legend=False, ax=ax, alpha=0.6)
-
-    ax.set_xlabel('')
-    ax.set_ylabel('')
-    ax.set_title(j)
-
-fig.tight_layout()
-fig.savefig('components_distribution.png')
-
-# %%
-# Plot waveforms
-
-# Generate data
-# Setup label
-label_names = dict(
-    Target=1,
-    Far=2,
-    Near=4
-)
-
-# Load data into dataframe [df]
-times = train_epochs.times
-dfs = []
-for j, name in enumerate(label_names):
-    # Compute averaged waveform of each classes,
-    # restore it into [df],
-    # besides with label and times
-    wave = np.mean(data[label == label_names[name]], axis=0).transpose()
-    df = pd.DataFrame(wave)
-    df['times'] = times
-    df['label'] = name
-    # Append the [df] into [dfs] list
-    dfs.append(df)
-
-# Concatenate [dfs] into the big dataframe [df]
-df = pd.concat(dfs, axis=0)
-
-# Plot
-# Setup style
-plt.style.use('ggplot')
-
-# Init fig and axes
-fig, axes = plt.subplots(2, 3, figsize=(12, 8), dpi=300)
-axes = np.ravel(axes)
-
-# Draw
-for j in range(6):
-    print(j)
-    ax = axes[j]
-    sns.lineplot(data=df, x='times', y=j, hue='label',
-                 ax=ax, legend=False)
-    ax.set_title(j)
-    ax.set_xlabel('')
-    ax.set_ylabel('')
-
-fig.tight_layout()
-fig.savefig('components_averaged.png')
 
 # %%

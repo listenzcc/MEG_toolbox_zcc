@@ -2,37 +2,29 @@
 # Aim: Calculate MVPA baseline using EEG net
 
 # %%
-from sklearn.manifold import TSNE
-import seaborn as sns
-from sklearn.model_selection import StratifiedKFold
-import torch.optim as optim
 
-import plotly.graph_objs as go
-import plotly
 import mne
 import numpy as np
-import matplotlib.pyplot as plt
+import os
+import pandas as pd
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+import torchsummary
 
-import sklearn
 from sklearn import svm
 from sklearn import metrics
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 
-import pandas as pd
-
 from tools.data_manager import DataManager
-
-import torchsummary
-# from eegnet import EEGNet, numpy2torch, torch2numpy, DEVICE
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
 
 # %%
 
 DEVICE = 'cuda'
+SENSORS_NUMBER = 64
 
 
 def numpy2torch(array, dtype=np.float32, device=DEVICE):
@@ -70,6 +62,7 @@ class TrainSessions(object):
 class OneHotVec(object):
     # Onehot vector encoder and decoder
     def __init__(self, coding={1: 0, 2: 1, 4: 2}):
+        # def __init__(self, coding={1: 0, 2: 1}):
         # Init
         # coding: coding table
         self.coding = coding
@@ -105,14 +98,14 @@ class OneHotVec(object):
 class EEGNet(nn.Module):
     def __init__(self):
         super(EEGNet, self).__init__()
-        self.C = 272
+        self.C = SENSORS_NUMBER
         self.T = 120
         self.set_parameters()
 
     def set_parameters(self):
         # Layer 1
         self.conv1 = nn.Conv2d(1, 25, (1, 5), padding=(0, 2))
-        self.conv11 = nn.Conv2d(25, 25, (272, 1), padding=(0, 0))
+        self.conv11 = nn.Conv2d(25, 25, (SENSORS_NUMBER, 1), padding=(0, 0))
         self.batchnorm1 = nn.BatchNorm2d(25, False)
         self.pooling1 = nn.MaxPool2d(1, 2)
 
@@ -212,24 +205,29 @@ class EEGNet(nn.Module):
         return x
 
 
+class MEGSensorSelection(object):
+    # Down sample the MEG sensors,
+    # from [raw_num] to [new_num]
+    def __init__(self):
+        pass
+
+    def fit(self, raw_num=272, new_num=64):
+        self.raw_num = raw_num
+        self.new_num = new_num
+        permutation = np.random.permutation(range(self.raw_num)).astype(int)
+        self.drops = permutation[self.new_num:]
+
+    def transform(self, epochs):
+        ch_names = epochs.ch_names
+        epochs.drop_channels([ch_names[j] for j in self.drops])
+        return epochs
+
+
 net = EEGNet().cuda()
-input_size = (1, 272, 120)
+input_size = (1, SENSORS_NUMBER, 120)
 print('-' * 80)
 print('Input size is {}, {}'.format(-1, input_size))
 torchsummary.summary(net, input_size=input_size)
-
-# %%
-
-plotly.offline.init_notebook_mode(connected=True)
-
-
-def plot(scatters, title='Title'):
-    if isinstance(scatters, dict):
-        scatters = [scatters]
-    layout = go.Layout(title=title)
-    data = [go.Scatter(**scatter) for scatter in scatters]
-    plotly.offline.iplot(dict(data=data,
-                              layout=layout))
 
 # %%
 
@@ -339,9 +337,10 @@ bands = dict(raw=(0.1, 13),
 n_jobs = 48
 
 # %%
-for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', 'MEG_S07', 'MEG_S08', 'MEG_S09', 'MEG_S10']:
-    # Load MEG data
-    # name = 'MEG_S02'
+modal = 'MEG'
+for subject in ['S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', 'S10']:
+    name = f'{modal}_{subject}'
+    # Load EEG data
     dm = DataManager(name)
     dm.load_epochs(recompute=False)
 
@@ -358,10 +357,19 @@ for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', '
 
     while cv.is_valid():
         # Recursive
+        # Random select 64 sensors in MEG data
+        mss = MEGSensorSelection()
+        if modal == 'MEG':
+            mss.fit()
+
         # Get current split
         split = cv.next_split(n_components)
         include_epochs = split['includes']
         exclude_epochs = split['excludes']
+
+        # Random select 64 sensors in MEG data
+        include_epochs = mss.transform(include_epochs)
+        exclude_epochs = mss.transform(exclude_epochs)
 
         # Get scaler, xdawn and clf
         xdawn = split['xdawn']
@@ -375,10 +383,6 @@ for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', '
         # Select events of ['1', '2', '4']
         train_epochs = include_epochs['1', '2', '4']
         test_epochs = exclude_epochs['1', '2', '4']
-
-        l_freq, h_freq = bands['lower']
-        train_epochs.filter(l_freq, h_freq, n_jobs=n_jobs)
-        test_epochs.filter(l_freq, h_freq, n_jobs=n_jobs)
 
         # Xdawn preprocessing -----------------------------
         # Fit xdawn
@@ -399,6 +403,8 @@ for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', '
         # Get labels and select events
         train_label = train_epochs.events[:, -1]
         test_label = test_epochs.events[:, -1]
+
+        # Relabel 4 to 2, to generate 2-classes situation
         # train_label[train_label == 4] = 2
         # test_label[test_label == 4] = 2
 
@@ -480,104 +486,14 @@ for name in ['MEG_S01', 'MEG_S02', 'MEG_S03', 'MEG_S04', 'MEG_S05', 'MEG_S06', '
 
     # Save labels of current [name]
     frame = pd.DataFrame(labels)
-    frame.to_json(f'no_xdawn_eegnet_3classes_lowerband/{name}.json')
+    folder_name = 'eegnet_3classes_meg64'
+    if not os.path.exists(folder_name):
+        os.mkdir(folder_name)
+    frame.to_json(os.path.join(folder_name, f'{name}.json'))
+
     print(f'{name} MVPA is done')
     # break
 
 print('All done.')
-stophere
-
-# %%
-net
-
-# %%
-for c in net.conv11.parameters():
-    break
-# %%
-c = torch2numpy(c)
-c = c[:, :, :, 0]
-c.shape
-
-
-# %%
-evoked = test_epochs['1'].average()
-times = evoked.times
-evoked.data[:, 0] = c[0, 0]
-evoked.plot_topomap(times=[-0.2])
-# %%
-X.shape
-# %%
-X[:100].shape
-
-# %%
-times = test_epochs.times[:120][10:-10]
-# Compute feature on randomized data [X]
-data, label = tsession.random(num=100)
-X = numpy2torch((data[:, np.newaxis, :] + _min) / (_max - _min))
-
-f = net.feature_1(X)
-feature = torch2numpy(f)
-
-label_names = dict(
-    Target=1,
-    Far=2,
-    Near=4
-)
-
-dfs = []
-for j, name in enumerate(label_names):
-    averaged_feature = np.squeeze(
-        np.mean(feature[label == label_names[name]], axis=0)).transpose()[10:-10]
-    df = pd.DataFrame(averaged_feature)
-    df['times'] = times
-    df['label'] = name
-    dfs.append(df)
-
-df = pd.concat(dfs, axis=0)
-
-fig, axes = plt.subplots(5, 5, figsize=(12, 12), dpi=300)
-axes = np.ravel(axes)
-for y in range(25):
-    ax = axes[y]
-    sns.lineplot(data=df, x='times', y=y, hue='label',
-                 ax=ax, legend=False)
-    ax.set_title(y)
-    ax.set_xlabel('')
-    ax.set_ylabel('')
-
-fig.tight_layout()
-fig.savefig('channels_averaged.png')
-print('Done')
-
-
-# %%
-ftr = feature.copy()
-
-fig, axes = plt.subplots(5, 5, figsize=(12, 12), dpi=300)
-axes = np.ravel(axes)
-
-for j in range(25):
-    print(j)
-    x = np.squeeze(ftr[:, j])
-
-    tsne = TSNE(n_components=2)
-    x_tsne = tsne.fit_transform(x)
-    x_tsne.shape
-
-    df = pd.DataFrame(x_tsne)
-    df.columns = ['x', 'y']
-    t = ['', 'a', 'b', '', 'c']
-    df['label'] = [t[e] for e in label]
-
-    ax = axes[j]
-    sns.scatterplot(data=df, x='x', y='y', hue='label',
-                    legend=False, ax=ax, alpha=0.6)
-    ax.set_title(j)
-    ax.set_xlabel('')
-    ax.set_ylabel('')
-
-fig.tight_layout()
-fig.savefig('channels_distribution.png')
-print('Done')
 
 # %%
