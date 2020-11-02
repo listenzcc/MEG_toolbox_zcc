@@ -214,8 +214,8 @@ for subject in ['S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', '
         # stophere
 
         # Relabel 4 to 2, to generate 2-classes situation
-        train_label[train_label == 4] = 2
-        test_label[test_label == 4] = 2
+        # train_label[train_label == 4] = 2
+        # test_label[test_label == 4] = 2
 
         # Just print something to show data have been prepared
         print(train_data.shape, train_label.shape,
@@ -249,7 +249,7 @@ for subject in ['S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', '
 
     # Save labels of current [name]
     frame = pd.DataFrame(labels)
-    folder_name = 'svm_2classes_meg64'
+    folder_name = 'svm_3classes_meg64'
     if not os.path.exists(folder_name):
         os.mkdir(folder_name)
     frame.to_json(os.path.join(folder_name, f'{name}.json'))

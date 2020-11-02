@@ -58,7 +58,9 @@ for model in ['EEG', 'MEG']:
                    'eegnet_2classes',
                    'eegnet_3classes',
                    'svm_2classes_meg64',
-                   'eegnet_2classes_meg64']:
+                   'svm_3classes_meg64',
+                   'eegnet_2classes_meg64',
+                   'eegnet_3classes_meg64']:
         for subject in ['S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', 'S10']:
             filepath = os.path.join(folder, f'{model}_{subject}.json')
 
