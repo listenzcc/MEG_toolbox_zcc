@@ -517,7 +517,7 @@ for subject in ['S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', '
         criterion = nn.MSELoss()
         parameters1 = [e for e in net.conv1_eeg.parameters()]
         parameters2 = [e for e in net.conv11_eeg.parameters()]
-        optimizer = optim.Adam(net.parameters(),
+        optimizer = optim.Adam(parameters1 + parameters2,
                                lr=0.001)
         scheduler = optim.lr_scheduler.StepLR(optimizer,
                                               step_size=50,

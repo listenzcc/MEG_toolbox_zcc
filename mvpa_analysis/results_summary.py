@@ -85,7 +85,7 @@ for model in ['EEG', 'MEG']:
 model = 'EEG'
 folder = 'eegnet_3classes_mix'
 for subject in ['S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', 'S10']:
-    filepath = os.path.join(folder, f'{subject}-mix.json')
+    filepath = os.path.join(folder, f'{subject}_mix.json')
     df = pd.read_json(filepath)
 
     y_true = np.concatenate(df.y_true_eeg.to_list())
