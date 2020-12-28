@@ -2,42 +2,42 @@
 # Aim: Provide tools for setting and getting environ variables
 
 # %%
-import os
+# import os
 import warnings
+import configparser
 
 # %% ----------------------------------
 # Set and get local configures through environments
 
 
 class Configure(object):
-    def __init__(self, prefix='_MEG_RSVP_'):
-        # prefix is used to find the customer settings
-        self.prefix = prefix
-
-    def unique(self, key):
-        # Make up unique key
-        return f'{self.prefix}{key}'
+    def __init__(self, section_name='RSVP-dataset'):
+        parser = configparser.ConfigParser()
+        parser.add_section(section_name)
+        self.parser = parser
+        self.section_name = section_name
 
     def set(self, key, value):
-        # Setup key as value
-        # The settings will be restored in os.environ
-        unique = self.unique(key)
-        v = os.environ.get(unique)
-        if v is not None:
+        # Setup entry of [key] as [value]
+        if self.parser.has_option(self.section_name, key):
+            v = self.parser.get_option(self.section_name, key)
             warnings.warn(
-                f'Found "{key}" in env, overwriting "{v}" with "{value}"', RuntimeWarning)
-        os.environ[unique] = value
+                f'Found "{key}" in config, overwriting "{v}" with "{value}"', UserWarning)
+
+        self.parser[self.section_name][key] = value
+        print(f'Added "{key}" as "{value}"')
 
     def get(self, key):
         # Get key
-        return os.environ.get(self.unique(key))
+        if not self.parser.has_option(self.section_name, key):
+            warnings.warn(
+                f'Can not find "{key}" in config, using "None" instead', UserWarning)
+            return None
+        return self.parser[self.section_name][key]
 
-    def getall(self):
+    def get_all(self):
         # Get all keys
-        outputs = dict()
-        for key, value in os.environ.items():
-            if key.startswith(self.prefix):
-                outputs[key[len(self.prefix):]] = value
-        return outputs
+        return dict(self.parser[self.section_name])
+
 
 # %%

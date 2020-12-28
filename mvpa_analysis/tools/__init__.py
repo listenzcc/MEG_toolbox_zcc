@@ -9,3 +9,5 @@ home = os.environ['HOME']
 config.set('RAW_DIR', os.path.join(home, 'RSVP_dataset', 'processed_data'))
 config.set('MEMORY_DIR', os.path.join(home, 'RSVP_dataset', 'memory'))
 config.set('SUBJECTS_DIR', os.path.join(home, 'RSVP_dataset', 'subjects'))
+
+print(config.get_all())
