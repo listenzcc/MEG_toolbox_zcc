@@ -3,7 +3,7 @@
 
 import os
 import mne
-from . import Configure
+from . import config
 from .local_tools import find_files, mkdir
 
 
@@ -64,10 +64,12 @@ class DataManager(object):
     #       !!! Will read from memory if [recompute] is False
     #       !!! If [recompute] is True, then the epochs will be saved in [self.memory_dir]
 
-    def __init__(self, subject, config=Configure(), parameters=None):
+    def __init__(self, subject, config=config, parameters=None):
         self.config = config
         raw_dir = self.config.get('RAW_DIR')
         memory_dir = self.config.get('MEMORY_DIR')
+
+        print(config.get_all())
 
         self.subject = subject
         self.raw_dir = os.path.join(raw_dir, self.subject)
