@@ -114,8 +114,13 @@ class EEGNet(nn.Module):
         self.batchnorm2 = nn.BatchNorm2d(50, False)
         self.pooling2 = nn.MaxPool2d(1, 2)
 
+        # Layer 2 bypass
+        self.pooling21 = nn.MaxPool2d(1, 2)
+
+        # Cat Layer 2 and its bypass outputs
+
         # Layer 3
-        self.conv3 = nn.Conv2d(50, 100, (1, 5), padding=(0, 2))
+        self.conv3 = nn.Conv2d(50 + 25, 100, (1, 5), padding=(0, 2))
         self.batchnorm3 = nn.BatchNorm2d(100, False)
         self.pooling3 = nn.MaxPool2d(1, 2)
 
@@ -174,10 +179,13 @@ class EEGNet(nn.Module):
         x = F.dropout(x, dropout)
 
         # Layer 2
+        x_bypass = self.pooling21(x)
         x = self.conv2(x)
         x = self.batchnorm2(x)
         x = F.elu(x)
         x = self.pooling2(x)
+
+        x = torch.cat([x, x_bypass], 1)
 
         x = F.dropout(x, dropout)
 
@@ -337,7 +345,7 @@ bands = dict(raw=(0.1, 13),
 n_jobs = 48
 
 # %%
-modal = 'MEG'
+modal = 'EEG'
 for subject in ['S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', 'S10']:
     name = f'{modal}_{subject}'
     # Load EEG data
@@ -358,9 +366,9 @@ for subject in ['S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', '
     while cv.is_valid():
         # Recursive
         # Random select 64 sensors in MEG data
-        mss = MEGSensorSelection()
-        if modal == 'MEG':
-            mss.fit()
+        # mss = MEGSensorSelection()
+        # if modal == 'MEG':
+        #     mss.fit()
 
         # Get current split
         split = cv.next_split(n_components)
@@ -368,8 +376,8 @@ for subject in ['S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', '
         exclude_epochs = split['excludes']
 
         # Random select 64 sensors in MEG data
-        include_epochs = mss.transform(include_epochs)
-        exclude_epochs = mss.transform(exclude_epochs)
+        # include_epochs = mss.transform(include_epochs)
+        # exclude_epochs = mss.transform(exclude_epochs)
 
         # Get scaler, xdawn and clf
         xdawn = split['xdawn']
@@ -466,7 +474,7 @@ for subject in ['S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', '
                            loss=loss.item(),
                            test_loss=_loss.item())))
 
-        print('EEG net training is done.')
+        print(f'{modal} net training is done.')
 
         # Predict using EEG net
         y = torch2numpy(net.predict(X_test))
@@ -486,7 +494,7 @@ for subject in ['S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', '
 
     # Save labels of current [name]
     frame = pd.DataFrame(labels)
-    folder_name = 'eegnet_3classes_meg64'
+    folder_name = 'eegnet_3classes_bypass'
     if not os.path.exists(folder_name):
         os.mkdir(folder_name)
     frame.to_json(os.path.join(folder_name, f'{name}.json'))
