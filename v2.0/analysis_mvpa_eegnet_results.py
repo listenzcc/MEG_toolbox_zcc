@@ -186,3 +186,5 @@ for j, method in enumerate(confusion_matrixes):
 
 fig.tight_layout()
 # fig.savefig('confusion_matrix.png')
+
+# %%

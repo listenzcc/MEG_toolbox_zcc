@@ -10,3 +10,4 @@ private
 *.log
 *.csv
 *.ipynb_checkpoints
+*.html
