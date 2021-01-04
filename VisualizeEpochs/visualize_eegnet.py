@@ -587,9 +587,8 @@ for i in range(25):
     pattern = patterns.copy()[i, :, :].squeeze()
     print('Selected pattern is of shape:', pattern.shape)
 
-    fig, axes = plt.subplots(5, 5, figsize=(12, 12))
-    axes = np.ravel(axes)
-
+    # fig, axes = plt.subplots(5, 5, figsize=(12, 12))
+    # axes = np.ravel(axes)
 
     def black(ax):
         # The style will stroke the outline of the head as 'white' color,
@@ -600,7 +599,6 @@ for i in range(25):
             if type(e) in [matplotlib.lines.Line2D]:
                 e.set_color('#444444')
         return ax
-
 
     # for j in range(25):
     #     _pattern = pattern[j]
@@ -615,7 +613,8 @@ for i in range(25):
 
     plt.style.use('ggplot')
     fig, axes = plt.subplots(1, 2, figsize=(12, 6))
-    mne.viz.plot_topomap(np.mean(pattern, axis=0), info, axes=axes[0], show=False)
+    mne.viz.plot_topomap(np.mean(pattern, axis=0),
+                         info, axes=axes[0], show=False)
     axes[0].set_title(f'Component of {i}')
     black(axes[0])
     axes[1].plot(_times, feature[i])
