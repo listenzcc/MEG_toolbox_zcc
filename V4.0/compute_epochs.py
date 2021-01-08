@@ -11,11 +11,8 @@ from tqdm.auto import tqdm
 # %%
 n_jobs = 48
 config = configparser.ConfigParser()
-config.read('settings.ini')
-config['Path']['home'] = os.path.join(os.environ['HOME'], 'RSVP_dataset')
+config.read('auto-settings.ini')
 
-if not os.path.isdir(config['Path']['epochs']):
-    os.mkdir(config['Path']['epochs'])
 
 # %%
 inventory = pd.read_json('inventory.json')
@@ -23,32 +20,10 @@ inventory['epochsPath'] = '-'
 inventory
 
 # %%
-reject_criteria = dict(mag=4000e-15,     # 4000 fT
-                       grad=4000e-13,    # 4000 fT/cm
-                       eeg=150e-6,       # 150 µV
-                       eog=250e-6)       # 250 µV
-
-parameters_meg = dict(picks='mag',
-                      stim_channel='UPPT001',
-                      l_freq=0.1,
-                      h_freq=15.0,
-                      tmin=-0.2,
-                      tmax=1.2,
-                      decim=12,
-                      detrend=1,
-                      reject=dict(mag=4000e-15),
-                      baseline=None)
-
-parameters_eeg = dict(picks='eeg',
-                      stim_channel='from_annotations',
-                      l_freq=0.1,
-                      h_freq=15.0,
-                      tmin=-0.2,
-                      tmax=1.2,
-                      decim=10,
-                      detrend=1,
-                      reject=dict(eeg=150e-6),
-                      baseline=None)
+reject_criteria = eval(config['epochs']['reject_criteria'])
+params_meg = eval(config['epochs']['params_meg'])
+params_eeg = eval(config['epochs']['params_eeg'])
+reject_criteria, params_meg, params_eeg
 
 # %%
 
@@ -93,6 +68,9 @@ def relabel_events(events):
 
 
 # %%
+cccc = 0
+destinations = dict()
+
 for i in tqdm(range(len(inventory))):
     # ------------------------------------
     # Get series of the frame
@@ -104,10 +82,11 @@ for i in tqdm(range(len(inventory))):
     parameters = None
 
     if series.subject.startswith('EEG'):
-        parameters = parameters_eeg
+        # continue
+        parameters = params_eeg
 
     if series.subject.startswith('MEG'):
-        parameters = parameters_meg
+        parameters = params_meg
 
     assert(parameters is not None)
 
@@ -115,6 +94,21 @@ for i in tqdm(range(len(inventory))):
     # Get and filter raw
     raw = mne.io.read_raw(series.rawPath)
     raw.load_data()
+
+    if series.subject.startswith('MEG'):
+        raw.apply_gradient_compensation(0)
+
+        chpi_locs = mne.chpi.extract_chpi_locs_ctf(raw)
+
+        head_pos = mne.chpi.compute_head_pos(raw.info,
+                                             chpi_locs=chpi_locs,
+                                             verbose=0)
+
+        dest = destinations.get(series.subject, raw.info['dev_head_t'])
+        destinations[series.subject] = dest
+
+        raw = mne.preprocessing.maxwell_filter(
+            raw, origin=[0, 0, 0], destination=dest)
 
     if series.subject.startswith('MEG'):
         events = mne.find_events(raw,
@@ -147,7 +141,7 @@ for i in tqdm(range(len(inventory))):
     epochs_name = os.path.basename(series.rawPath)[
         :len('block_00')] + '-epo.fif'
 
-    subject_dir = os.path.join(config['Path']['epochs'], series.subject)
+    subject_dir = os.path.join(config['path']['epochs'], series.subject)
     if not os.path.isdir(subject_dir):
         os.mkdir(subject_dir)
 
@@ -155,11 +149,18 @@ for i in tqdm(range(len(inventory))):
 
     # ------------------------------------
     # Save epochs
-    epochs.save(epochs_path)
+    epochs.load_data()
+    epochs.save(epochs_path, overwrite=True)
     inventory['epochsPath'].iloc[i] = epochs_path
 
+    # cccc += 1
+    # if cccc == 2:
+    #     break
     # break
 
 # %%
 inventory.to_json('inventory-epo.json')
 print('All Done.')
+
+
+# %%

@@ -11,3 +11,4 @@ private
 *.csv
 *.ipynb_checkpoints
 *.html
+_link_*

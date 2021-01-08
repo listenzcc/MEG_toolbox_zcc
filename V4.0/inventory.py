@@ -9,13 +9,12 @@ from tqdm.auto import tqdm
 
 # %%
 config = configparser.ConfigParser()
-config.read('settings.ini')
-config['Path']['home'] = os.path.join(os.environ['HOME'], 'RSVP_dataset')
+config.read('auto-settings.ini')
 
 # %%
 frame = pd.DataFrame()
 
-path0 = config['Path']['preprocessed']
+path0 = config['path']['preprocessed']
 for subject in tqdm(os.listdir(path0)):
     if not any([subject.startswith(e) for e in ['EEG', 'MEG']]):
         continue
