@@ -6,6 +6,7 @@
         "Vectorizer",
         "chpi",
         "cmat",
+        "coef",
         "corrcoef",
         "decim",
         "detrend",
@@ -26,6 +27,7 @@
         "tsession",
         "uids",
         "xraw",
-        "xtsne"
+        "xtsne",
+        "zscore"
     ]
 }
