@@ -9,6 +9,18 @@ import pandas as pd
 import configparser
 
 from tqdm.auto import tqdm
+from figure_toolbox import Drawer
+
+# %%
+drawer = Drawer()
+
+epochs_inventory = pd.read_json('inventory-epo.json')
+epochs_inventory
+
+
+def fetch_subject(subject, frame=epochs_inventory):
+    return frame.query(f'subject == "{subject}"')
+
 
 # %%
 
@@ -42,18 +54,9 @@ def autocorr(a, b, use_zscore=False):
 
 
 # %%
-epochs_inventory = pd.read_json('inventory-epo.json')
-epochs_inventory
-
-# %%
-
-
-def fetch_subject(subject, frame=epochs_inventory):
-    return frame.query(f'subject == "{subject}"')
-
-
+subject_name = 'MEG_S02'
 epochs_list = [mne.read_epochs(e) for e in
-               fetch_subject('MEG_S02')['epochsPath'].tolist()]
+               fetch_subject(subject_name)['epochsPath'].tolist()]
 
 epochs = mne.concatenate_epochs(epochs_list)
 
@@ -71,13 +74,13 @@ times = epochs_1.times
 lags = np.array([e-int(len(times)/2) for e in range(len(times))]) / 100
 # The shape of data is (465, 272, 141)
 # The shape of mean_data is (272, 141)
+shape = data.shape[:2]
 data.shape, mean_data.shape
 
 # %%
 # Use the analysis as in "P300 Speller Performance Predictor Based on RSVP Multi-feature"
 
 # Compute matrix of peak of amplitude / latency
-shape = (465, 272)
 peak_amplitude = np.zeros(shape)
 peak_latency = np.zeros(shape)
 autocorr_lag = np.zeros(shape)
@@ -105,7 +108,9 @@ im = axes[2].matshow(autocorr_lag)
 fig.colorbar(im, ax=axes[2])
 axes[2].set_title('Autocorr-Lag')
 
-fig.tight_layout()
+fig.suptitle(subject_name)
+fig.tight_layout(rect=[0.1, 0.1, 0.9, 0.99])
+drawer.fig = fig
 
 # Draw as topo map
 fig, axes = plt.subplots(4, 2, figsize=(12, 12))
@@ -134,6 +139,11 @@ row = 3
 draw(mean(autocorr_lag), ax=axes[row][0], title='Mean-Lag', cmap='Spectral_r')
 draw(std(autocorr_lag), ax=axes[row][1], title='Std-Lag')
 
-fig.tight_layout()
+fig.suptitle(subject_name)
+fig.tight_layout(rect=[0.1, 0.1, 0.9, 0.99])
+drawer.fig = fig
+
+# %%
+drawer.save(f'{subject_name}.pdf')
 
 # %%

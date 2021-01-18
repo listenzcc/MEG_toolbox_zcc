@@ -16,6 +16,7 @@
         "pinv",
         "proba",
         "probs",
+        "pyplot",
         "qtconsole",
         "scalings",
         "stim",

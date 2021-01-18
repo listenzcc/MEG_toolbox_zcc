@@ -1,5 +1,5 @@
 # Set up default settings for analysis
-
+import os
 import configparser
 
 config = configparser.ConfigParser()
@@ -47,4 +47,5 @@ config['epochs'] = dict(
 )
 
 # Write to the disk
+assert(not os.path.exists('auto-settings.ini'))
 config.write(open('auto-settings.ini', 'w'))

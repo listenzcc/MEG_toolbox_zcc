@@ -40,6 +40,7 @@ for subject in tqdm(os.listdir(path0)):
 
         frame = frame.append(series, ignore_index=True)
 
+assert(not os.path.exists('inventory.json'))
 frame.to_json('inventory.json')
 frame
 

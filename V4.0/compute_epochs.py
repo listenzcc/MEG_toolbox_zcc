@@ -159,6 +159,7 @@ for i in tqdm(range(len(inventory))):
     # break
 
 # %%
+assert(not os.path.exist('inventory-epo.json'))
 inventory.to_json('inventory-epo.json')
 print('All Done.')
 
