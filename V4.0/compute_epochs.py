@@ -1,4 +1,5 @@
 # Compute epochs based on inventory
+# Will COST VERY LONG TIME, like a day, depending on your computer
 
 # %%
 import os
@@ -7,6 +8,12 @@ import pandas as pd
 import configparser
 
 from tqdm.auto import tqdm
+
+# %%
+# If the inventory-epo.json already exists,
+# it should better stop and check the process,
+# to prevent wasting of time
+assert(not os.path.exist('inventory-epo.json'))
 
 # %%
 n_jobs = 48
