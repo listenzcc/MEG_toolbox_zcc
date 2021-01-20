@@ -7,6 +7,7 @@
     - [Raw File Detection](#raw-file-detection)
     - [Epochs Generation](#epochs-generation-1)
   - [Visualization](#visualization)
+    - [Visualize waveforms of evoked and time-shift among epochs](#visualize-waveforms-of-evoked-and-time-shift-among-epochs)
 
 ## Structure
 
@@ -16,14 +17,15 @@ To make them understandable, a file table is used.
 
 Table 1 File Table
 
-| File name                                  | Function                                   | Description    | Section                                 |
-| ------------------------------------------ | ------------------------------------------ | -------------- | --------------------------------------- |
-| [auto_settings.py](./auto_settings.py)     | Generate settings of MEG and EEG data      | Python Script  | [Settings](#settings)                   |
-| [auto-settings.ini](./auto-settings.ini)   | Settings of MEG and EEG data               | Auto Generated | [Settings](#settings)                   |
-| [inventory.py](./inventory.py)             | Detect raw .fif files of MEG and EEG data  | Python Script  | [Epochs Generation](#epochs-generation) |
-| [inventory.json](./inventory.json)         | Inventory of raw files, in .json format    | Auto Generated | [Epochs Generation](#epochs-generation) |
-| [compute_epochs.py](./compute_epochs.py)   | Generate epochs based on the inventory     | Python Script  | [Epochs Generation](#epochs-generation) |
-| [inventory-epo.json](./inventory-epo.json) | Inventory of epochs files, in .json format | Auto Generated | [Epochs Generation](#epochs-Generation) |
+| File name                                  | Function                                   | Description           | Section                                 |
+| ------------------------------------------ | ------------------------------------------ | --------------------- | --------------------------------------- |
+| [auto_settings.py](./auto_settings.py)     | Generate settings of MEG and EEG data      | Python Script         | [Settings](#settings)                   |
+| [auto-settings.ini](./auto-settings.ini)   | Settings of MEG and EEG data               | Auto Generated        | [Settings](#settings)                   |
+| [inventory.py](./inventory.py)             | Detect raw .fif files of MEG and EEG data  | Python Script         | [Epochs Generation](#epochs-generation) |
+| [inventory.json](./inventory.json)         | Inventory of raw files, in .json format    | Auto Generated        | [Epochs Generation](#epochs-generation) |
+| [compute_epochs.py](./compute_epochs.py)   | Generate epochs based on the inventory     | Python Script         | [Epochs Generation](#epochs-generation) |
+| [inventory-epo.json](./inventory-epo.json) | Inventory of epochs files, in .json format | Auto Generated        | [Epochs Generation](#epochs-Generation) |
+| [toolbox](./toolbox)                       | Python package of local utils              | Python Package Folder |
 
 ## Settings
 
@@ -54,7 +56,7 @@ The thing is read the raw files and generate epochs.
 The raw MEG and EEG files were in the folder of 'preprocessed' option in the setting.
 The python script of [inventory.py](./inventory.py) is to detect the raw .fif file.
 
-Example usages in shell:
+Example usage in shell:
 
 ```sh
 # Make sure inventory.json does not exist
@@ -81,7 +83,7 @@ by adding columns of
 
 Note before run: **Make sure everything is OK before start it, since the generation process costs much CPU resource.**
 
-Example usages in shell:
+Example usage in shell:
 
 ```sh
 # Make sure everything is OK before start it, since the generation process costs much CPU resource
@@ -94,5 +96,21 @@ python compute_epochs.py
 ## Visualization
 
 The first phase of analysis is to visualize the **epochs** and **evoked** responses.
+
+### Visualize waveforms of evoked and time-shift among epochs
+
+The waveforms of the multi-channel MEG or EEG dataset is plotted using [visualize_epochs.py](./visualize_epochs.py).
+Additionally, the time-shifts among the epochs are also plotted using [visualize_epochs.py](./visualize_epochs.py) too.
+The figures will be plotted in one single .pdf file for each subject (like 'MEG_S02', 'EEG_S02', ... as long as they are in the subject column of [inventory-epo.json](./inventory-epo.json)).
+The .pdf file will be stored in [Visualization/Evoked_and_TimeShift](./Visualization/Evoked_and_TimeShift)
+
+Example usage in shell:
+
+```sh
+# Make sure the results folder of Visualization/Evoked_and_TimeShift exists
+# To analysis the data of 'MEG_S02', use the following command
+# MEG_S02.pdf will be stored in the results folder
+python visualize_epochs.py MEG_S02
+```
 
 ---

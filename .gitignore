@@ -12,3 +12,4 @@ private
 *.ipynb_checkpoints
 *.html
 _link_*
+*.gif

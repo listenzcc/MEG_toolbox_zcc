@@ -5,12 +5,15 @@
         "Toeplitz",
         "Vectorizer",
         "chpi",
+        "cmap",
         "cmat",
         "coef",
         "corrcoef",
         "decim",
         "detrend",
         "entr",
+        "fname",
+        "fsaverage",
         "iloc",
         "ipython",
         "pinv",
@@ -23,6 +26,8 @@
         "tmax",
         "tmin",
         "tolist",
+        "topo",
+        "topomap",
         "tqdm",
         "trange",
         "tsession",
@@ -30,5 +35,8 @@
         "xraw",
         "xtsne",
         "zscore"
+    ],
+    "python.analysis.extraPaths": [
+        "./V4.0"
     ]
 }
