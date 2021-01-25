@@ -1,4 +1,4 @@
-# Compute and plot lags of signals in epochs
+# Compute and plot lags of MEG/EEG signals in epochs
 
 import mne
 import numpy as np

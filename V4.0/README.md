@@ -6,8 +6,10 @@
   - [Epochs Generation](#epochs-generation)
     - [Raw File Detection](#raw-file-detection)
     - [Epochs Generation](#epochs-generation-1)
+    - [Read Epochs](#read-epochs)
   - [Visualization](#visualization)
     - [Visualize waveforms of evoked and time-shift among epochs](#visualize-waveforms-of-evoked-and-time-shift-among-epochs)
+    - [Source Estimation](#source-estimation)
 
 ## Structure
 
@@ -17,15 +19,19 @@ To make them understandable, a file table is used.
 
 Table 1 File Table
 
-| File name                                  | Function                                   | Description           | Section                                 |
-| ------------------------------------------ | ------------------------------------------ | --------------------- | --------------------------------------- |
-| [auto_settings.py](./auto_settings.py)     | Generate settings of MEG and EEG data      | Python Script         | [Settings](#settings)                   |
-| [auto-settings.ini](./auto-settings.ini)   | Settings of MEG and EEG data               | Auto Generated        | [Settings](#settings)                   |
-| [inventory.py](./inventory.py)             | Detect raw .fif files of MEG and EEG data  | Python Script         | [Epochs Generation](#epochs-generation) |
-| [inventory.json](./inventory.json)         | Inventory of raw files, in .json format    | Auto Generated        | [Epochs Generation](#epochs-generation) |
-| [compute_epochs.py](./compute_epochs.py)   | Generate epochs based on the inventory     | Python Script         | [Epochs Generation](#epochs-generation) |
-| [inventory-epo.json](./inventory-epo.json) | Inventory of epochs files, in .json format | Auto Generated        | [Epochs Generation](#epochs-Generation) |
-| [toolbox](./toolbox)                       | Python package of local utils              | Python Package Folder |
+| File name                                  | Function                                     | Description           | Section                                 |
+| ------------------------------------------ | -------------------------------------------- | --------------------- | --------------------------------------- |
+| [auto_settings.py](./auto_settings.py)     | Generate settings of MEG and EEG data        | Python Script         | [Settings](#settings)                   |
+| [auto-settings.ini](./auto-settings.ini)   | Settings of MEG and EEG data                 | Auto Generated        | [Settings](#settings)                   |
+|                                            |                                              |                       |
+| [inventory.py](./inventory.py)             | Detect raw .fif files of MEG and EEG data    | Python Script         | [Epochs Generation](#epochs-generation) |
+| [inventory.json](./inventory.json)         | Inventory of raw files, in .json format      | Auto Generated        | [Epochs Generation](#epochs-generation) |
+| [compute_epochs.py](./compute_epochs.py)   | Generate epochs based on the inventory       | Python Script         | [Epochs Generation](#epochs-generation) |
+| [inventory-epo.json](./inventory-epo.json) | Inventory of epochs files, in .json format   | Auto Generated        | [Epochs Generation](#epochs-Generation) |
+| [read_epochs.py](./read_epochs.py)         | The method of read epochs based on inventory | Python Script         | [Epochs Generation](#epochs-generation) |
+|                                            |                                              |                       |
+|                                            |                                              |                       |
+| [toolbox](./toolbox)                       | Python package of local utils                | Python Package Folder | Stand alone                             |
 
 ## Settings
 
@@ -91,6 +97,20 @@ Example usage in shell:
 python compute_epochs.py
 ```
 
+### Read Epochs
+
+For users to easily use the inventory, I provide the python script of [read_epochs.py](./read_epochs.py).
+It contains easy-to-use python function to read epochs.
+
+Example usage in python:
+
+```python
+# Import method of read all available epochs
+from read_epochs import read_all_epochs
+# Read all epochs for 'MEG_S02'
+all_epochs = read_all_epochs('MEG_S02')
+```
+
 ---
 
 ## Visualization
@@ -102,7 +122,11 @@ The first phase of analysis is to visualize the **epochs** and **evoked** respon
 The waveforms of the multi-channel MEG or EEG dataset is plotted using [visualize_epochs.py](./visualize_epochs.py).
 Additionally, the time-shifts among the epochs are also plotted using [visualize_epochs.py](./visualize_epochs.py) too.
 The figures will be plotted in one single .pdf file for each subject (like 'MEG_S02', 'EEG_S02', ... as long as they are in the subject column of [inventory-epo.json](./inventory-epo.json)).
-The .pdf file will be stored in [Visualization/Evoked_and_TimeShift](./Visualization/Evoked_and_TimeShift)
+
+The .pdf file will be stored in [Visualization/Evoked_and_TimeShift](./Visualization/Evoked_and_TimeShift).
+One example can be found in [MEG_S02.pdf](./Visualization/Evoked_and_TimeShift/MEG_S02.pdf).
+
+Users can see the [compute_lags.py](./toolbox/compute_lags.py) for computation detail.
 
 Example usage in shell:
 
@@ -112,5 +136,29 @@ Example usage in shell:
 # MEG_S02.pdf will be stored in the results folder
 python visualize_epochs.py MEG_S02
 ```
+
+### Source Estimation
+
+The MEG data analysis requires source estimation analysis.
+I use several scripts to perform the analysis.
+I use [source_estimation.py](./source_source.py) to operate estimation for each subject.
+After operating the script, the source activity will be estimated and stored in [MiddleResults/SourceEstimation](./MiddleResults/SourceEstimation-norm/).
+
+To perform multi-subject analysis, the activity are also morphed to template source model, which is currently **fsaverage** subject in freesurfer.
+The morphed activity and morph file are also stored in the folder.
+Additionally, the '-norm' suffix of **SourceEstimation** folder refers to restrict the micro current direction to orthogonal to surface.
+
+Users can see the [estimate_source.py](./toolbox/estimate_source.py) for computation detail.
+To use freesurfer correctly, the script of [set_mne_freesurfer.py](./set_mne_freesurfer.py) is also provided to set environ variables.
+
+Example usage in shell
+
+```sh
+# MEG_S02 and RSVP_MRI_S02 refer the subject name of experiment and freesurfer respectively
+# The script requires the two names to link MEG and MRI data of the subject
+python source_estimation.py MEG_S02 RSVP_MRI_S02
+```
+
+####
 
 ---

@@ -1,28 +1,21 @@
 #!/usr/bin/env python
 # coding: utf-8
+# Visualize Source Activity in Wave Form
 
-# # Visualize Source Activity in Wave Form
-
-# In[1]:
-
-
+# %%
 import os
 import mne
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from toolbox.estimate_source import SourceEstimator, get_stuff
-from get_epochs import get_all_epochs
+from toolbox.estimate_source import get_stuff
 
 import plotly.offline as py
 import plotly.graph_objs as go
 
-
-# ## Setup Freesurfer Environ Variables
-
-# In[2]:
-
+# %%
+# Setup Freesurfer Environ Variables
 
 if not '__file__' in dir():
     __file__ = os.path.join(os.path.abspath(''), '__fake__file__')
@@ -38,11 +31,8 @@ def set_freesurfer_environ():
 set_freesurfer_environ()
 
 
-# ## Read Stc and Extract Time Series
-
-# In[3]:
-
-
+# %%
+# Read Stc and Extract Time Series
 # Settings
 subject_name = 'MEG_S02'
 freesurfer_name = 'RSVP_MRI_S02'
@@ -59,6 +49,8 @@ def stuff_path(name, freesurfer_name=freesurfer_name, folder=subject_folder):
 
 
 src = get_stuff('src', stuff_path('src'))
+
+# Read stc from disk
 stc = mne.read_source_estimate(os.path.join(stc_folder, subject_name))
 
 # Extract label_ts in subject's space
@@ -68,7 +60,8 @@ label_ts = mne.extract_label_time_course(
 
 label_ts
 
-# In[5]:
+# %%
+# Display using plotly
 
 data = []
 for j in range(68):

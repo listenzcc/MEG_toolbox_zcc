@@ -17,7 +17,7 @@ background_ext = '   '
 
 for j in range(10):
     subject_id = j+1
-    subject_name = f'MEG_S{subject_id:02d}'
+    subject_name = f'MEG_S{subject_id:02d} RSVP_MRI_S{subject_id:02d}'
     cmd = f'python {script} {subject_name} {background_ext}'
     print(cmd)
     subprocess.call(cmd, shell=True)
