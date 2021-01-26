@@ -4,34 +4,43 @@
   - [Structure](#structure)
   - [Settings](#settings)
   - [Epochs Generation](#epochs-generation)
-    - [Raw File Detection](#raw-file-detection)
-    - [Epochs Generation](#epochs-generation-1)
+    - [Raw File Inventory](#raw-file-inventory)
+    - [Epochs Segment and Computation](#epochs-segment-and-computation)
     - [Read Epochs](#read-epochs)
-  - [Visualization](#visualization)
-    - [Visualize waveforms of evoked and time-shift among epochs](#visualize-waveforms-of-evoked-and-time-shift-among-epochs)
-    - [Source Estimation](#source-estimation)
+  - [Sensor Space Computation](#sensor-space-computation)
+  - [Source Estimation](#source-estimation)
 
 ## Structure
 
 I would like to organize the scripts in a flatten manner.
-Which means the scripts and other files (like files of .json, .ini, ...) will **almost** all listed on the top-level folder.
+Which means the scripts and other files (like files of .json, .ini, ...) will **almost** all being listed on the top-level folder.
 To make them understandable, a file table is used.
 
 Table 1 File Table
 
-| File name                                  | Function                                     | Description           | Section                                 |
-| ------------------------------------------ | -------------------------------------------- | --------------------- | --------------------------------------- |
-| [auto_settings.py](./auto_settings.py)     | Generate settings of MEG and EEG data        | Python Script         | [Settings](#settings)                   |
-| [auto-settings.ini](./auto-settings.ini)   | Settings of MEG and EEG data                 | Auto Generated        | [Settings](#settings)                   |
-|                                            |                                              |                       |
-| [inventory.py](./inventory.py)             | Detect raw .fif files of MEG and EEG data    | Python Script         | [Epochs Generation](#epochs-generation) |
-| [inventory.json](./inventory.json)         | Inventory of raw files, in .json format      | Auto Generated        | [Epochs Generation](#epochs-generation) |
-| [compute_epochs.py](./compute_epochs.py)   | Generate epochs based on the inventory       | Python Script         | [Epochs Generation](#epochs-generation) |
-| [inventory-epo.json](./inventory-epo.json) | Inventory of epochs files, in .json format   | Auto Generated        | [Epochs Generation](#epochs-Generation) |
-| [read_epochs.py](./read_epochs.py)         | The method of read epochs based on inventory | Python Script         | [Epochs Generation](#epochs-generation) |
-|                                            |                                              |                       |
-|                                            |                                              |                       |
-| [toolbox](./toolbox)                       | Python package of local utils                | Python Package Folder | Stand alone                             |
+| File name                                                                      | Function                                       | Description           | Section                                               |
+| ------------------------------------------------------------------------------ | ---------------------------------------------- | --------------------- | ----------------------------------------------------- |
+| Settings                                                                       |                                                |                       |
+| [auto_settings.py](./auto_settings.py)                                         | Generate settings of MEG and EEG data          | Python Script         | [Settings](#settings)                                 |
+| [auto-settings.ini](./auto-settings.ini)                                       | Settings of MEG and EEG data                   | Auto Generated        | [Settings](#settings)                                 |
+| Epochs Generation                                                              |                                                |                       |
+| [inventory.py](./inventory.py)                                                 | Detect raw .fif files of MEG and EEG data      | Python Script         | [Epochs Generation](#epochs-generation)               |
+| [inventory.json](./inventory.json)                                             | Inventory of raw files, in .json format        | Auto Generated        | [Epochs Generation](#epochs-generation)               |
+| [compute_epochs.py](./compute_epochs.py)                                       | Generate epochs based on the inventory         | Python Script         | [Epochs Generation](#epochs-generation)               |
+| [inventory-epo.json](./inventory-epo.json)                                     | Inventory of epochs files, in .json format     | Auto Generated        | [Epochs Generation](#epochs-Generation)               |
+| [read_epochs.py](./read_epochs.py)                                             | The method of read epochs based on inventory   | Python Script         | [Epochs Generation](#epochs-generation)               |
+| Visualization Epochs                                                           |                                                |                       |
+| [visualize_epochs.py](./visualize_epochs.py)                                   | Visualize the evoked and epochs in time-shifts | Python Script         | [Sensor Space Computation](#sensor-space-computation) |
+| Source Estimation                                                              |                                                |                       |
+| [source_estimation.py](./source_estimation.py)                                 | Estimate neural activity in cortex             | Python Script         | [Source Estimation](#source-estimation)               |
+| [source_visualization_3DSurface.ipynb](./source_visualization_3DSurface.ipynb) | Plot activity in cortex                        | Notebook Script       | [Source Estimation](#source-estimation)               |
+| [source_visualization_corr.ipynb](./source_visualization_corr.ipynb)           | Plot source corr in circle graph               | Notebook Script       | [Source Estimation](#source-estimation)               |
+| [source_visualization_waveform.py](./source_visualization_waveform.py)         | Plot source waveform in plotly                 | Notebook Script       | [Source Estimation](#source-estimation)               |
+| Stand Alone Tools                                                              |                                                |                       |
+| [toolbox](./toolbox)                                                           | Python package of local utils                  | Python Package Folder | Stand alone                                           |
+| [batch.py](./batch.py)                                                         | Automatic batch script                         | Python Script         | Stand alone                                           |
+
+---
 
 ## Settings
 
@@ -57,7 +66,7 @@ The generated ini file contains
 I assume the raw MEG and EEG data has been preprocessed.
 The thing is read the raw files and generate epochs.
 
-### Raw File Detection
+### Raw File Inventory
 
 The raw MEG and EEG files were in the folder of 'preprocessed' option in the setting.
 The python script of [inventory.py](./inventory.py) is to detect the raw .fif file.
@@ -75,7 +84,7 @@ There are two columns in the DataFrame
 - rawPath: full path of raw .fif file
 - subject: subject name, like 'MEG_S02' or 'EEG_S02'.
 
-### Epochs Generation
+### Epochs Segment and Computation
 
 The epochs will be generated based on the inventory of each raw files.
 The python script of [compute_epochs.py](./compute_epochs.py) is to perform the generation.
@@ -97,6 +106,10 @@ Example usage in shell:
 python compute_epochs.py
 ```
 
+During the epochs generation, the de-noise projection is necessary and on-time.
+In the current practice, the Signal-space projection (SSP) method is used.
+See [MNE document](https://mne.tools/stable/auto_tutorials/preprocessing/plot_45_projectors_background.html#computing-projectors) for detail.
+
 ### Read Epochs
 
 For users to easily use the inventory, I provide the python script of [read_epochs.py](./read_epochs.py).
@@ -113,11 +126,9 @@ all_epochs = read_all_epochs('MEG_S02')
 
 ---
 
-## Visualization
+## Sensor Space Computation
 
 The first phase of analysis is to visualize the **epochs** and **evoked** responses.
-
-### Visualize waveforms of evoked and time-shift among epochs
 
 The waveforms of the multi-channel MEG or EEG dataset is plotted using [visualize_epochs.py](./visualize_epochs.py).
 Additionally, the time-shifts among the epochs are also plotted using [visualize_epochs.py](./visualize_epochs.py) too.
@@ -137,7 +148,7 @@ Example usage in shell:
 python visualize_epochs.py MEG_S02
 ```
 
-### Source Estimation
+## Source Estimation
 
 The MEG data analysis requires source estimation analysis.
 I use several scripts to perform the analysis.
@@ -159,6 +170,10 @@ Example usage in shell
 python source_estimation.py MEG_S02 RSVP_MRI_S02
 ```
 
-####
+Additionally, the jupyter notebook scripts of
+[source_visualization_3DSurface.ipynb](./source_visualization_3DSurface.ipynb), [source_visualization_corr.ipynb](./source_visualization_corr.ipynb) and [source_visualization_waveform.py](./source_visualization_waveform.py)
+are used to visualize the output of source estimation.
+The reason I apply notebook scripts is because it allows **pyvista 3D backend** to be correctly used as plotting.
+Users have to run the scripts to see the results.
 
 ---

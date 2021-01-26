@@ -13,7 +13,7 @@ from tqdm.auto import tqdm
 # If the inventory-epo.json already exists,
 # it should better stop and check the process,
 # to prevent wasting of time
-assert(not os.path.exist('inventory-epo.json'))
+assert(not os.path.isfile('inventory-epo.json'))
 
 # %%
 n_jobs = 48
@@ -75,7 +75,6 @@ def relabel_events(events):
 
 
 # %%
-cccc = 0
 destinations = dict()
 
 for i in tqdm(range(len(inventory))):
@@ -143,6 +142,13 @@ for i in tqdm(range(len(inventory))):
         baseline=parameters['baseline'],
     )
 
+    # -------------------------------------
+    # Estimate SSP denoise projectors for the epochs
+    # see 'https://mne.tools/stable/auto_tutorials/preprocessing/plot_45_projectors_background.html#computing-projectors' for detail
+    projs = mne.compute_proj_epochs(epochs)
+    for p in projs:
+        epochs.add_proj(p)
+
     # ------------------------------------
     # Prepare epochs path
     epochs_name = os.path.basename(series.rawPath)[
@@ -160,10 +166,6 @@ for i in tqdm(range(len(inventory))):
     epochs.save(epochs_path, overwrite=True)
     inventory['epochsPath'].iloc[i] = epochs_path
 
-    # cccc += 1
-    # if cccc == 2:
-    #     break
-    # break
 
 # %%
 assert(not os.path.exist('inventory-epo.json'))
