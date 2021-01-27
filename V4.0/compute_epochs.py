@@ -142,13 +142,6 @@ for i in tqdm(range(len(inventory))):
         baseline=parameters['baseline'],
     )
 
-    # -------------------------------------
-    # Estimate SSP denoise projectors for the epochs
-    # see 'https://mne.tools/stable/auto_tutorials/preprocessing/plot_45_projectors_background.html#computing-projectors' for detail
-    projs = mne.compute_proj_epochs(epochs)
-    for p in projs:
-        epochs.add_proj(p)
-
     # ------------------------------------
     # Prepare epochs path
     epochs_name = os.path.basename(series.rawPath)[
@@ -168,7 +161,7 @@ for i in tqdm(range(len(inventory))):
 
 
 # %%
-assert(not os.path.exist('inventory-epo.json'))
+assert(not os.path.isfile('inventory-epo.json'))
 inventory.to_json('inventory-epo.json')
 print('All Done.')
 

@@ -106,10 +106,6 @@ Example usage in shell:
 python compute_epochs.py
 ```
 
-During the epochs generation, the de-noise projection is necessary and on-time.
-In the current practice, the Signal-space projection (SSP) method is used.
-See [MNE document](https://mne.tools/stable/auto_tutorials/preprocessing/plot_45_projectors_background.html#computing-projectors) for detail.
-
 ### Read Epochs
 
 For users to easily use the inventory, I provide the python script of [read_epochs.py](./read_epochs.py).
@@ -122,6 +118,20 @@ Example usage in python:
 from read_epochs import read_all_epochs
 # Read all epochs for 'MEG_S02'
 all_epochs = read_all_epochs('MEG_S02')
+```
+
+After the epochs reading, the de-noise projection is necessary and on-time.
+In the current practice, the Signal-space projection (SSP) method is used.
+See [MNE document](https://mne.tools/stable/auto_tutorials/preprocessing/plot_45_projectors_background.html#computing-projectors) for detail.
+
+Example usage in python:
+
+```python
+# Import method of denoise using SSP projector
+from toolbox.preprocessing import denoise_projs
+# Compute SSP projector and apply it to the [epochs]
+# - @epochs: The epochs with type of mne.BaseEpochs or something likes
+denoise_projs(epochs)
 ```
 
 ---
