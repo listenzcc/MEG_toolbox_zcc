@@ -14,8 +14,8 @@ from toolbox.preprocessing import denoise_projs
 from read_epochs import read_all_epochs
 
 # %%
-# subject_name = sys.argv[1]  # 'MEG_S02' for example
-subject_name = 'MEG_S02'
+subject_name = sys.argv[1]  # 'MEG_S02' for example
+# subject_name = 'MEG_S02'
 dest_folder = os.path.join('Visualization', 'Evoked_and_TimeShift')
 assert(os.path.isdir(dest_folder))
 pdf_path = os.path.join(dest_folder, f'{subject_name}.pdf')
