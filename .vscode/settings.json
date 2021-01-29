@@ -51,5 +51,11 @@
     ],
     "python.analysis.extraPaths": [
         "./V4.0"
-    ]
+    ],
+    "files.watcherExclude": {
+        "**/_link_**": true,
+        "**/MiddleResults": true,
+        "**/trash": true,
+        "**/Visualization": true
+    }
 }

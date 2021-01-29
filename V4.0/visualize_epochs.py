@@ -37,7 +37,7 @@ def fetch_subject(subject, frame=epochs_inventory):
 
 epochs = read_all_epochs(subject_name)
 
-epochs = denoise_projs(epochs)
+denoise_projs(epochs)
 
 if subject_name.startswith('EEG'):
     epochs = custom_montage(epochs)
