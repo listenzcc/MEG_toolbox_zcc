@@ -31,9 +31,9 @@ from set_mne_freesurfer import set_freesurfer_environ
 set_freesurfer_environ()
 
 # %%
-# subject_name = 'MEG_S02'
-# freesurfer_name = 'RSVP_MRI_S02'
-subject_name, freesurfer_name = sys.argv[1:3]
+subject_name = 'MEG_S02'
+freesurfer_name = 'RSVP_MRI_S02'
+# subject_name, freesurfer_name = sys.argv[1:3]
 
 # %%
 # Prepare epochs
@@ -95,17 +95,26 @@ srcEst = SourceEstimator(freesurfer_name)
 srcEst.pre_estimation(src, sol, trans, epochs, epochs.info)
 
 stcs, morph = srcEst.estimate(epochs)
+stcs = [morph.apply(s) for s in stcs]
 stcs
 
 # %%
-labels = mne.read_labels_from_annot(freesurfer_name, 'aparc')
+annot_name = freesurfer_name
+annot_name = 'fsaverage'
+labels_name = 'aparc'
+labels_name = 'PALS_B12_Visuotopic'
+
+src = mne.read_source_spaces(os.path.join(
+    os.environ['SUBJECTS_DIR'], 'fsaverage', 'bem', 'fsaverage-ico-5-src.fif'))
+
+labels = mne.read_labels_from_annot(annot_name, labels_name)
+labels = [e for e in labels if not 'unknown' in e.name]
+labels = [e for e in labels if not '?' in e.name]
 label_ts = mne.extract_label_time_course(
     stcs, labels, src, mode='mean_flip', return_generator=False)
 label_ts = np.array(label_ts)
 label_ts
 
-# %%
-info['chs']
 
 # %%
 n_jobs = 48
@@ -147,9 +156,6 @@ def fig_save(fig, path):
         f.write(html)
 
 
-m = np.mean(scores, axis=0)
-s = np.std(scores, axis=0)
-
 p = np.max(np.abs(coef), axis=1)
 o = np.argsort(p)[::-1]
 p = p[o]
@@ -165,30 +171,40 @@ df['peak_value'] = p
 # )
 
 fig = make_subplots(
-    rows=3,
+    rows=4,
     cols=1,
-    subplot_titles=['Roc', 'Coef', 'Coef (Peak)']
+    subplot_titles=['Ts', 'Roc', 'Coef', 'Coef (Peak)']
 )
 
+# Ts
+ts = np.mean(label_ts[epochs_df['label'] == 1], axis=0)
+data = []
+for s in ts:
+    data.append(go.Scatter(x=times, y=s, showlegend=False))
+for d in data:
+    fig.add_trace(d, row=1, col=1)
+
 # Roc
+m = np.mean(scores, axis=0)
+s = np.std(scores, axis=0)
 data = [
     go.Scatter(x=times, y=m, showlegend=False),
     go.Scatter(x=times, y=m+s, showlegend=False),
     go.Scatter(x=times, y=m-s, showlegend=False),
 ]
 for d in data:
-    fig.add_trace(d, row=1, col=1)
+    fig.add_trace(d, row=2, col=1)
 
 # Coef
 data = []
 for j, c in enumerate(coef):
     data.append(go.Scatter(x=times, y=c, name=labels[j].name, mode='lines'))
 for d in data:
-    fig.add_trace(d, row=2, col=1)
+    fig.add_trace(d, row=3, col=1)
 
 # Coef (Peak)
 data = go.Bar(x=lp, y=p, showlegend=False)
-fig.add_trace(data, row=3, col=1)
+fig.add_trace(data, row=4, col=1)
 
 # Show
 fig.update_layout(dict(
@@ -197,13 +213,15 @@ fig.update_layout(dict(
 
 fig.show()
 
-fig_save(fig, html_path['plot'])
+# fig_save(fig, html_path['plot'])
 
-fig = ff.create_table(df)
-fig.show()
+df
 
-fig_save(fig, html_path['table'])
+# fig = ff.create_table(df)
+# fig.show()
+# fig_save(fig, html_path['table'])
 
 # %%
 print('All Done.')
+
 # %%
