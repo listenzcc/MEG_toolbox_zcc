@@ -35,26 +35,23 @@ set_freesurfer_environ()
 # Read Stc and Extract Time Series
 # Settings
 subject_name = 'MEG_S02'
-freesurfer_name = 'RSVP_MRI_S02'
-freesurfer_template = 'fsaverage'
 stc_folder = os.path.join('MiddleResults', 'SourceEstimation')
-subject_folder = os.path.join(os.path.dirname(__file__),
-                              '_link_preprocessed', subject_name)
+labels_name = 'aparc'
+labels_name = 'PALS_B12_Visuotopic'
 
 # Read objs from disk
-
-
-def stuff_path(name, freesurfer_name=freesurfer_name, folder=subject_folder):
-    return os.path.join(folder, f'{freesurfer_name}-{name}.fif')
-
-
-src = get_stuff('src', stuff_path('src'))
+src = mne.read_source_spaces(os.path.join(
+    os.environ['SUBJECTS_DIR'], 'fsaverage', 'bem', 'fsaverage-ico-5-src.fif'))
 
 # Read stc from disk
-stc = mne.read_source_estimate(os.path.join(stc_folder, subject_name))
+stc = mne.read_source_estimate(
+    os.path.join(stc_folder, f'{subject_name}-morph'))
 
 # Extract label_ts in subject's space
-labels = mne.read_labels_from_annot(freesurfer_name, 'aparc')
+labels = mne.read_labels_from_annot('fsaverage', labels_name)
+labels = [e for e in labels if not 'unknown' in e.name]
+labels = [e for e in labels if not '?' in e.name]
+
 label_ts = mne.extract_label_time_course(
     stc, labels, src, mode='mean_flip', return_generator=False)
 
@@ -64,7 +61,7 @@ label_ts
 # Display using plotly
 
 data = []
-for j in range(68):
+for j in range(len(label_ts)):
     data.append(go.Scatter(y=label_ts[j],
                            name=labels[j].name))
 
