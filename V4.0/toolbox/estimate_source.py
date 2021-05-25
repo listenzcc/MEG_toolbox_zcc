@@ -1,5 +1,6 @@
 # Source estimation of the MEG
 
+import os
 import mne
 
 # The table of source stuff we want
@@ -48,6 +49,8 @@ def generate_default_parameters():
 
     "vector"
     No pooling of the orientations is done, and the vector result will be returned in the form of a mne.VectorSourceEstimate object.
+
+    It turns out that the "normal" option is better, according to the MVPA analysis on source space
     '''
 
     params = dict(
@@ -65,7 +68,7 @@ def generate_default_parameters():
         lambda2=1/9,
         pick_ori='normal',  # None | 'normal'
         # Source morph
-        spacing=6,
+        # spacing=6,
     )
 
     return params
@@ -150,12 +153,14 @@ class SourceEstimator(object):
 
         Args:
         - @obj: The MEG object to perform estimation, it can be Epochs or Evoked
-        - @subject_to: The morph-to template name in freesurfer folder, default by 'fsaverage'
+        - @subject_to: The morph-to template name in freesurfer folder, default by 'fsaverage',
+                       *users should be ware that the morph function works ONLY when 'fsaverage' is used.*
 
         Outs:
         - @stc: The estimated source activity in the space of [freesurfer_name]
         - @morph: The morph method from [subject_from] to [subject_to],
-                  users have to morph the stc in after as they will
+                  users have to morph the stc in after as required.
+                  *The morph output will be None if subject_to is not 'fsaverage'.*
         '''
 
         kwargs = subset(['lambda2', 'pick_ori'])
@@ -171,13 +176,18 @@ class SourceEstimator(object):
 
         assert(not stc is None)
 
-        kwargs = dict(
-            src=self.src,
-            subject_from=self.freesurfer_name,
-            subject_to=subject_to,
-            spacing=subset(['spacing'])['spacing']
-        )
-        morph = mne.compute_source_morph(**kwargs)
+        if subject_to == 'fsaverage':
+            src = mne.read_source_spaces(os.path.join(
+                os.environ['SUBJECTS_DIR'], 'fsaverage', 'bem', 'fsaverage-ico-5-src.fif'))
+            kwargs = dict(
+                src=self.src,
+                subject_from=self.freesurfer_name,
+                subject_to=subject_to,
+                src_to=src,
+            )
+            morph = mne.compute_source_morph(**kwargs)
+        else:
+            morph = None
 
         self.stc = stc
         self.morph = morph
